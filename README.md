@@ -107,10 +107,21 @@ start.bat
 python -m uvicorn server:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-- **Storefront & Concierge**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **Admin Dashboard**: [http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin)
-- **OpenAPI Interactive Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **Phoenix Telemetry Diagnostics**: [http://127.0.0.1:8000/api/monitoring/phoenix-status](http://127.0.0.1:8000/api/monitoring/phoenix-status)
+---
+
+## 🌐 Service Endpoints, Ports & Protocol Discovery
+
+| Service / Interface | Port | Local Endpoint / URL | Description |
+| :--- | :---: | :--- | :--- |
+| 🛍️ **Storefront & Concierge** | `8000` | [`http://127.0.0.1:8000/`](http://127.0.0.1:8000/) | Conversational Luxury Fashion Concierge & AI Styling Experience |
+| 📊 **Executive Atelier Admin** | `8000` | [`http://127.0.0.1:8000/admin`](http://127.0.0.1:8000/admin) | Real-time revenue analytics, orders, patrons & A2A machine telemetry |
+| 📜 **AP2 Agent Discovery Manifest** | `8000` | [`/.well-known/agent-protocol.json`](http://127.0.0.1:8000/.well-known/agent-protocol.json) | Machine-readable capability & endpoint manifest for external AI buyers |
+| 🔌 **MCP Tool Schema Manifest** | `8000` | [`/.well-known/mcp.json`](http://127.0.0.1:8000/.well-known/mcp.json) | Model Context Protocol (MCP) declarations for Claude, AutoGPT & external agents |
+| 📱 **WhatsApp QR Pairing** | `8000` / `5001` | [`http://127.0.0.1:8000/whatsapp`](http://127.0.0.1:8000/whatsapp) | Live Baileys WebSocket QR scanner & automated campaign dispatcher |
+| 📈 **A2A Protocol Telemetry** | `8000` | [`/protocol/v1/telemetry`](http://127.0.0.1:8000/protocol/v1/telemetry) | Audit metrics for autonomous buyer spend ceilings & programmatic orders |
+| 🔍 **Arize Phoenix Telemetry** | `6006` / Cloud | [`/api/monitoring/phoenix-status`](http://127.0.0.1:8000/api/monitoring/phoenix-status) | Distributed OpenTelemetry trace status, agent spans & latency monitoring |
+| 💓 **Keep-Alive Health Probe** | `8000` | [`http://127.0.0.1:8000/health`](http://127.0.0.1:8000/health) | Uptime monitoring & MongoDB Atlas connectivity health check |
+| 📖 **Interactive OpenAPI Docs** | `8000` | [`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs) | Interactive Swagger UI for testing all REST, MCP, and A2A API routes |
 
 ---
 
