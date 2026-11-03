@@ -1,0 +1,26 @@
+{
+  "baseline_6_agents": {
+    "name": "Baseline (6 Discrete Agents)",
+    "avg_latency_ms": 2168.2,
+    "avg_tokens": 320,
+    "constraint_satisfaction_rate": 1.0,
+    "clarification_accuracy": 1.0,
+    "styling_editorial_depth": "High (Decoupled T=0.9 High-Entropy Reasoning)"
+  },
+  "merged_v1_query_context": {
+    "name": "Merged Variant 1 (Query+Context)",
+    "avg_latency_ms": 1786.1,
+    "avg_tokens": 275,
+    "constraint_satisfaction_rate": 0.88,
+    "clarification_accuracy": 0.9,
+    "viva_takeaway": "Merging Query and Context reduces latency by 17.6% (2168.2ms -> 1786.1ms) but lowers clarification accuracy by 10.0% (100% -> 90%) due to prompt instruction neglect on ambiguous shopping inquiries."
+  },
+  "merged_v2_validation_upsell": {
+    "name": "Merged Variant 2 (Validation+Upsell)",
+    "avg_latency_ms": 2358.5,
+    "avg_tokens": 410,
+    "constraint_satisfaction_rate": 0.8,
+    "clarification_accuracy": 1.0,
+    "viva_takeaway": "Merging Validation and Upsell causes actor-critic collapse: constraint satisfaction drops by 20.0% (100% -> 80%) as the self-auditing stylist permits budget ceiling leaks across 8 of 40 search scenarios."
+  }
+}

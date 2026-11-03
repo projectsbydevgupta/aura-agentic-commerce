@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: aura-luxury-commerce
+    runtime: python
+    buildCommand: ./render-build.sh
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: GROQ_API_KEY_QUERY
+        sync: false
+      - key: GROQ_API_KEY_CONTEXT
+        sync: false
+      - key: GROQ_API_KEY_UPSELL
+        sync: false
+      - key: GROQ_API_KEY_VALIDATION
+        sync: false
+      - key: GROQ_API_KEY_CAMPAIGN
+        sync: false
+      - key: VOYAGE_API_KEY
+        sync: false
+      - key: MONGODB_PASSWORD
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: WHATSAPP_DRY_RUN
+        sync: false
+      - key: WHATSAPP_API_KEY
+        sync: false

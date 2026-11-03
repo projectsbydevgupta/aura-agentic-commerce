@@ -1,0 +1,1682 @@
+// =====================================================================
+// AURA — AI Fashion Concierge Client Application
+// =====================================================================
+
+const API_BASE = "";
+let currentThreadId = localStorage.getItem("aura_thread_id") || generateUUID();
+localStorage.setItem("aura_thread_id", currentThreadId);
+
+let currentUser = JSON.parse(localStorage.getItem("aura_user") || "null");
+let wardrobeItems = JSON.parse(localStorage.getItem("aura_wardrobe") || "[]");
+let bagItems = JSON.parse(localStorage.getItem("aura_bag") || "[]");
+let appliedCoupon = JSON.parse(localStorage.getItem("aura_applied_coupon") || "null");
+let activeEnsembleProducts = [];
+let pendingCheckout = false;
+
+const USD_TO_INR = 50; // 1 USD = ₹50 INR
+
+function formatINR(usdPrice) {
+  if (usdPrice === undefined || usdPrice === null || isNaN(usdPrice)) return "₹0";
+  const inr = Math.round(usdPrice * USD_TO_INR);
+  return `₹${inr.toLocaleString('en-IN')}`;
+}
+
+function getPriceINR(usdPrice) {
+  if (usdPrice === undefined || usdPrice === null || isNaN(usdPrice)) return 0;
+  return Math.round(usdPrice * USD_TO_INR);
+}
+
+function generateUUID() {
+  return "aura-" + Math.random().toString(36).substring(2, 9);
+}
+
+// Fallback high-fashion images if external catalog URL fails
+const FALLBACK_IMAGES = [
+  "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop"
+];
+
+function getSafeImageUrl(url, index = 0) {
+  if (url && url.startsWith("http")) return url;
+  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+}
+
+// =====================================================================
+// DOM Elements
+// =====================================================================
+
+const queryInput = document.getElementById("query-input");
+const submitBtn = document.getElementById("submit-btn");
+const voiceBtn = document.getElementById("voice-btn");
+const suggestionChips = document.querySelectorAll(".suggestion-chips .chip");
+const processingCard = document.getElementById("ai-processing-card");
+const processingTitle = document.getElementById("processing-title");
+const clarificationCard = document.getElementById("clarification-card");
+const clarifyQuestionText = document.getElementById("clarification-question-text");
+const clarificationQuestionText = clarifyQuestionText;
+const clarifyOptions = document.getElementById("clarification-options");
+const clarifyInput = document.getElementById("clarify-input");
+const clarifySubmitBtn = document.getElementById("clarify-submit-btn");
+const resultsSection = document.getElementById("results-section");
+const productsGrid = document.getElementById("products-grid");
+const editorialHome = document.getElementById("editorial-home");
+const editorialGrid = document.getElementById("editorial-grid");
+const interpretationHeadline = document.getElementById("interpretation-headline");
+const interpretationSub = document.getElementById("interpretation-sub");
+const activeFiltersRow = document.getElementById("active-filters-row");
+const validationText = document.getElementById("validation-text");
+
+// Outfit Modal & Drawers
+const outfitModal = document.getElementById("outfit-modal");
+const modalCloseBtn = document.getElementById("modal-close-btn");
+const anchorItemPanel = document.getElementById("anchor-item-panel");
+const ensembleCardsList = document.getElementById("ensemble-cards-list");
+const stylistInsightText = document.getElementById("stylist-insight-text");
+const ensembleTotalPrice = document.getElementById("ensemble-total-price");
+const buyCompleteLookBtn = document.getElementById("buy-complete-look-btn");
+
+const bagDrawer = document.getElementById("bag-drawer");
+const bagCloseBtn = document.getElementById("bag-close-btn");
+const openBagBtn = document.getElementById("open-bag-btn");
+const bagCount = document.getElementById("bag-count");
+const drawerBagCount = document.getElementById("drawer-bag-count");
+const bagItemsList = document.getElementById("bag-items-list");
+const bagSubtotal = document.getElementById("bag-subtotal");
+const bagSubtotalVal = document.getElementById("bag-subtotal-val");
+const bagDiscountRow = document.getElementById("bag-discount-row");
+const bagDiscountVal = document.getElementById("bag-discount-val");
+const discountPctLabel = document.getElementById("discount-pct-label");
+const checkoutBtn = document.getElementById("checkout-btn");
+
+// Coupon Elements
+const couponCodeInput = document.getElementById("coupon-code-input");
+const applyCouponBtn = document.getElementById("apply-coupon-btn");
+const couponAppliedBadge = document.getElementById("coupon-applied-badge");
+const couponAppliedText = document.getElementById("coupon-applied-text");
+const removeCouponBtn = document.getElementById("remove-coupon-btn");
+const couponMsg = document.getElementById("coupon-msg");
+
+const wardrobeDrawer = document.getElementById("wardrobe-drawer");
+const wardrobeCloseBtn = document.getElementById("wardrobe-close-btn");
+const tabWardrobe = document.getElementById("tab-wardrobe");
+const wardrobeCount = document.getElementById("wardrobe-count");
+const drawerWardrobeCount = document.getElementById("drawer-wardrobe-count");
+const wardrobeItemsList = document.getElementById("wardrobe-items-list");
+
+// Auth Elements
+const authBtn = document.getElementById("auth-btn");
+const authUserName = document.getElementById("auth-user-name");
+const userDropdown = document.getElementById("user-dropdown");
+const dropdownUserEmail = document.getElementById("dropdown-user-email");
+const logoutBtn = document.getElementById("logout-btn");
+
+const authModal = document.getElementById("auth-modal");
+const authCloseBtn = document.getElementById("auth-close-btn");
+const authModalTitle = document.getElementById("auth-modal-title");
+const tabLoginBtn = document.getElementById("tab-login-btn");
+const tabSignupBtn = document.getElementById("tab-signup-btn");
+const loginForm = document.getElementById("login-form");
+const signupForm = document.getElementById("signup-form");
+const loginEmail = document.getElementById("login-email");
+const loginPassword = document.getElementById("login-password");
+const loginError = document.getElementById("login-error");
+const signupName = document.getElementById("signup-name");
+const signupEmail = document.getElementById("signup-email");
+const signupPhone = document.getElementById("signup-phone");
+const signupPassword = document.getElementById("signup-password");
+const signupError = document.getElementById("signup-error");
+const authSkipBtn = document.getElementById("auth-skip-btn");
+
+// Order Confirmation Modal Elements
+const orderSuccessModal = document.getElementById("order-success-modal");
+const orderSuccessCloseBtn = document.getElementById("order-success-close-btn");
+const orderDoneBtn = document.getElementById("order-done-btn");
+const orderRefId = document.getElementById("order-ref-id");
+const orderRefTotal = document.getElementById("order-ref-total");
+
+// Customer Maison Profile Modal Elements
+const profileModal = document.getElementById("profile-modal");
+const profileCloseBtn = document.getElementById("profile-close-btn");
+const navProfileBtn = document.getElementById("nav-profile-btn");
+const profileDisplayName = document.getElementById("profile-display-name");
+const profileDisplayEmail = document.getElementById("profile-display-email");
+const profileAvatarLetter = document.getElementById("profile-avatar-letter");
+const profileStatWardrobe = document.getElementById("profile-stat-wardrobe");
+const profileStatOrders = document.getElementById("profile-stat-orders");
+const profileStatSpend = document.getElementById("profile-stat-spend");
+const profileOrdersCountBadge = document.getElementById("profile-orders-count-badge");
+const profileOrdersList = document.getElementById("profile-orders-list");
+
+// =====================================================================
+// Initialize App
+// =====================================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  updateAuthUI();
+  updateBagUI();
+  updateWardrobeUI();
+  loadTrendingCurations();
+  setupEventListeners();
+  initDynamicPlaceholderAgent();
+});
+
+function setupEventListeners() {
+  submitBtn.addEventListener("click", () => executeQuery(queryInput.value));
+  queryInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") executeQuery(queryInput.value);
+  });
+
+  // Suggestion Chips
+  suggestionChips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      const prompt = chip.getAttribute("data-prompt");
+      queryInput.value = prompt;
+      executeQuery(prompt);
+    });
+  });
+
+  // Clarification reply
+  clarifySubmitBtn.addEventListener("click", () => {
+    if (clarifyInput.value.trim()) {
+      executeClarification(clarifyInput.value.trim());
+    }
+  });
+
+  clarifyInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && clarifyInput.value.trim()) {
+      executeClarification(clarifyInput.value.trim());
+    }
+  });
+
+  // Drawers & Modals
+  openBagBtn.addEventListener("click", () => bagDrawer.style.display = "flex");
+  bagCloseBtn.addEventListener("click", () => bagDrawer.style.display = "none");
+  tabWardrobe.addEventListener("click", () => wardrobeDrawer.style.display = "flex");
+  wardrobeCloseBtn.addEventListener("click", () => wardrobeDrawer.style.display = "none");
+
+  // Wardrobe AI Stylist Inquire Handler
+  const wardrobeAiBtn = document.getElementById("wardrobe-ai-btn");
+  const wardrobeAiQuery = document.getElementById("wardrobe-ai-query");
+  if (wardrobeAiBtn && wardrobeAiQuery) {
+    const triggerWardrobeAi = () => {
+      const q = wardrobeAiQuery.value.trim();
+      if (!q) return;
+      wardrobeDrawer.style.display = "none";
+      const savedContext = wardrobeItems.map(i => i.name).slice(0, 3).join(", ");
+      const fullQuery = savedContext ? `${q} (matching saved pieces: ${savedContext})` : q;
+      searchQueryInput.value = fullQuery;
+      executeQuery(fullQuery);
+      wardrobeAiQuery.value = "";
+    };
+    wardrobeAiBtn.addEventListener("click", triggerWardrobeAi);
+    wardrobeAiQuery.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        triggerWardrobeAi();
+      }
+    });
+  }
+  modalCloseBtn.addEventListener("click", () => outfitModal.style.display = "none");
+
+  // Buy complete look
+  buyCompleteLookBtn.addEventListener("click", () => {
+    activeEnsembleProducts.forEach(prod => addToBag(prod));
+    outfitModal.style.display = "none";
+    bagDrawer.style.display = "flex";
+  });
+
+  // Checkout Button (Login Gate)
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener("click", handleCheckoutClick);
+  }
+
+  // Coupon Event Handlers
+  if (applyCouponBtn) {
+    applyCouponBtn.addEventListener("click", handleApplyCouponClick);
+  }
+  if (couponCodeInput) {
+    couponCodeInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleApplyCouponClick();
+      }
+    });
+  }
+  if (removeCouponBtn) {
+    removeCouponBtn.addEventListener("click", handleRemoveCouponClick);
+  }
+
+  // Voice Affordance
+  voiceBtn.addEventListener("click", () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.onstart = () => {
+        voiceBtn.style.color = "var(--accent-amber)";
+        queryInput.placeholder = "Listening to your request...";
+      };
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        queryInput.value = transcript;
+        executeQuery(transcript);
+      };
+      recognition.onend = () => {
+        voiceBtn.style.color = "var(--text-secondary)";
+      };
+      recognition.start();
+    } else {
+      alert("Speech recognition is not supported in this browser.");
+    }
+  });
+
+  // Auth Event Handlers
+  authBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (currentUser) {
+      userDropdown.style.display = userDropdown.style.display === "none" ? "block" : "none";
+    } else {
+      openAuthModal("login");
+    }
+  });
+
+  document.addEventListener("click", () => {
+    if (userDropdown) userDropdown.style.display = "none";
+  });
+
+  logoutBtn.addEventListener("click", () => {
+    logoutUser();
+  });
+
+  authCloseBtn.addEventListener("click", () => {
+    authModal.style.display = "none";
+    pendingCheckout = false;
+  });
+
+  if (authSkipBtn) {
+    authSkipBtn.addEventListener("click", () => {
+      authModal.style.display = "none";
+      pendingCheckout = false;
+    });
+  }
+
+  tabLoginBtn.addEventListener("click", () => switchAuthTab("login"));
+  tabSignupBtn.addEventListener("click", () => switchAuthTab("signup"));
+
+  loginForm.addEventListener("submit", handleLoginSubmit);
+  signupForm.addEventListener("submit", handleSignupSubmit);
+
+  // Order Success Modal Close
+  if (orderSuccessCloseBtn) {
+    orderSuccessCloseBtn.addEventListener("click", () => orderSuccessModal.style.display = "none");
+  }
+  if (orderDoneBtn) {
+    orderDoneBtn.addEventListener("click", () => orderSuccessModal.style.display = "none");
+  }
+
+  // Customer Profile & Orders Modal Handlers
+  if (navProfileBtn) {
+    navProfileBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (userDropdown) userDropdown.style.display = "none";
+      openProfileModal();
+    });
+  }
+  if (profileCloseBtn) {
+    profileCloseBtn.addEventListener("click", () => {
+      profileModal.style.display = "none";
+    });
+  }
+}
+
+async function openProfileModal() {
+  if (!currentUser || !currentUser.email) {
+    openAuthModal("login");
+    return;
+  }
+
+  profileModal.style.display = "flex";
+  profileDisplayName.textContent = currentUser.name || "Member";
+  profileDisplayEmail.textContent = currentUser.email || "";
+  profileAvatarLetter.textContent = (currentUser.name || "M").charAt(0).toUpperCase();
+  profileStatWardrobe.textContent = wardrobeItems.length;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/user/orders?email=${encodeURIComponent(currentUser.email)}`);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.detail || "Failed to load order history");
+    }
+
+    const orders = data.orders || [];
+    profileStatOrders.textContent = orders.length;
+
+    let lifetimeSpend = 0;
+    orders.forEach(o => lifetimeSpend += (o.total_amount || 0));
+    profileStatSpend.textContent = formatINR(lifetimeSpend);
+    profileOrdersCountBadge.textContent = `${orders.length} Acquisition${orders.length === 1 ? '' : 's'}`;
+
+    renderProfileOrders(orders);
+  } catch (err) {
+    console.error("Error loading user profile orders:", err);
+    profileOrdersList.innerHTML = `<div class="empty-orders-state"><p>Could not retrieve historical orders at this time.</p></div>`;
+  }
+}
+
+function renderProfileOrders(orders) {
+  if (!orders || orders.length === 0) {
+    profileOrdersList.innerHTML = `
+      <div class="empty-orders-state">
+        <p style="font-size: 1rem; color: #ffffff; margin-bottom: 0.25rem;">No historical orders yet</p>
+        <p style="font-size: 0.8rem; color: #71717a;">Your bespoke acquisitions and capsule orders will be archived here once placed.</p>
+      </div>
+    `;
+    return;
+  }
+
+  profileOrdersList.innerHTML = "";
+  orders.forEach(order => {
+    const orderDate = order.created_at ? new Date(order.created_at).toLocaleDateString("en-US", {
+      year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+    }) : "Recent Order";
+
+    const card = document.createElement("div");
+    card.className = "order-history-card";
+
+    let itemsHtml = "";
+    (order.items || []).forEach((item, idx) => {
+      itemsHtml += `
+        <div class="order-item-chip">
+          <img src="${getSafeImageUrl(item.image_url, idx)}" class="order-item-thumb" alt="${item.name}"/>
+          <div class="order-item-info">
+            <span class="order-item-name">${item.name}</span>
+            <span class="order-item-price">${formatINR(item.price)}</span>
+          </div>
+        </div>
+      `;
+    });
+
+    card.innerHTML = `
+      <div class="order-card-header">
+        <div class="order-ref-group">
+          <span class="order-ref-title">${order.order_id}</span>
+          <span class="order-meta-sub">${orderDate} &bull; Razorpay ID: <code style="color:var(--accent-gold);">${order.payment_id || 'Direct'}</code></span>
+        </div>
+        <span class="order-status-pill">${order.status || 'Paid (Razorpay)'}</span>
+      </div>
+      <div class="order-items-grid">
+        ${itemsHtml}
+      </div>
+      <div class="order-card-footer">
+        <span>Complimentary Express Delivery</span>
+        <span>Total Paid: <strong>${formatINR(order.total_amount)}</strong></span>
+      </div>
+    `;
+
+    profileOrdersList.appendChild(card);
+  });
+}
+
+// =====================================================================
+// User Authentication Logic
+// =====================================================================
+
+function updateAuthUI() {
+  if (currentUser) {
+    authUserName.textContent = currentUser.name || "Member";
+    dropdownUserEmail.textContent = currentUser.email || "";
+  } else {
+    authUserName.textContent = "Sign In";
+    dropdownUserEmail.textContent = "";
+  }
+}
+
+function openAuthModal(mode = "login", isForCheckout = false) {
+  authModal.style.display = "flex";
+  pendingCheckout = isForCheckout;
+  switchAuthTab(mode);
+  if (isForCheckout) {
+    authModalTitle.textContent = "Sign In to Place Order";
+  }
+}
+
+function switchAuthTab(mode) {
+  if (mode === "login") {
+    tabLoginBtn.classList.add("active");
+    tabSignupBtn.classList.remove("active");
+    loginForm.style.display = "flex";
+    signupForm.style.display = "none";
+    authModalTitle.textContent = pendingCheckout ? "Sign In to Place Order" : "Welcome Back";
+    loginError.style.display = "none";
+  } else {
+    tabSignupBtn.classList.add("active");
+    tabLoginBtn.classList.remove("active");
+    signupForm.style.display = "flex";
+    loginForm.style.display = "none";
+    authModalTitle.textContent = pendingCheckout ? "Create Account to Place Order" : "Join AURA";
+    signupError.style.display = "none";
+  }
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  loginError.style.display = "none";
+  const submitBtn = document.getElementById("login-submit-btn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Signing In...";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: loginEmail.value.trim(),
+        password: loginPassword.value
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.detail || data.error || "Invalid email or password.");
+    }
+
+    // Save logged-in user
+    currentUser = data.user;
+    localStorage.setItem("aura_user", JSON.stringify(currentUser));
+
+    // Merge saved wardrobe and bag from MongoDB
+    if (data.user.wardrobe && data.user.wardrobe.length > 0) {
+      wardrobeItems = data.user.wardrobe;
+      localStorage.setItem("aura_wardrobe", JSON.stringify(wardrobeItems));
+    }
+    if (data.user.bag && data.user.bag.length > 0) {
+      bagItems = data.user.bag;
+      localStorage.setItem("aura_bag", JSON.stringify(bagItems));
+    }
+
+    updateAuthUI();
+    updateBagUI();
+    updateWardrobeUI();
+    authModal.style.display = "none";
+    loginForm.reset();
+
+    // If user triggered login from checkout, proceed immediately
+    if (pendingCheckout) {
+      pendingCheckout = false;
+      executeOrderCheckout();
+    }
+  } catch (err) {
+    loginError.textContent = err.message;
+    loginError.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Sign In";
+  }
+}
+
+async function handleSignupSubmit(e) {
+  e.preventDefault();
+  signupError.style.display = "none";
+  const submitBtn = document.getElementById("signup-submit-btn");
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Creating Account...";
+
+  const phoneVal = signupPhone ? signupPhone.value.trim() : "";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: signupName.value.trim(),
+        email: signupEmail.value.trim(),
+        password: signupPassword.value,
+        phone: phoneVal || null
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.detail || data.error || "Sign up failed.");
+    }
+
+    currentUser = data.user;
+    localStorage.setItem("aura_user", JSON.stringify(currentUser));
+
+    syncUserDataWithMongo();
+
+    updateAuthUI();
+    updateBagUI();
+    updateWardrobeUI();
+    authModal.style.display = "none";
+    signupForm.reset();
+
+    // If user triggered sign up from checkout, proceed immediately
+    if (pendingCheckout) {
+      pendingCheckout = false;
+      executeOrderCheckout();
+    }
+  } catch (err) {
+    signupError.textContent = err.message;
+    signupError.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Create Account";
+  }
+}
+
+function logoutUser() {
+  currentUser = null;
+  localStorage.removeItem("aura_user");
+  userDropdown.style.display = "none";
+  updateAuthUI();
+}
+
+async function syncUserDataWithMongo() {
+  if (!currentUser || !currentUser.email) return;
+  try {
+    await fetch(`${API_BASE}/api/user/sync`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: currentUser.email,
+        wardrobe: wardrobeItems,
+        bag: bagItems,
+        phone: currentUser.phone || (signupPhone ? signupPhone.value.trim() : null)
+      })
+    });
+  } catch (err) {
+    console.log("Notice on syncing user collections to MongoDB:", err);
+  }
+}
+
+// =====================================================================
+// Coupon & Promo Code Logic
+// =====================================================================
+
+async function handleApplyCouponClick() {
+  if (!couponCodeInput) return;
+  const code = couponCodeInput.value.trim().toUpperCase();
+  if (!code) {
+    showCouponMsg("Please enter a promo code (e.g. AURA20, VIP25).", "error");
+    return;
+  }
+
+  let subtotal = 0;
+  bagItems.forEach(i => subtotal += (i.price || 0));
+
+  if (subtotal <= 0) {
+    showCouponMsg("Please add items to your shopping bag first.", "error");
+    return;
+  }
+
+  applyCouponBtn.disabled = true;
+  applyCouponBtn.textContent = "...";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/coupon/validate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code, subtotal: subtotal })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.valid) {
+      showCouponMsg(data.error || "Invalid coupon code.", "error");
+      return;
+    }
+
+    appliedCoupon = data;
+    localStorage.setItem("aura_applied_coupon", JSON.stringify(appliedCoupon));
+    showCouponMsg(`✓ ${data.description || 'Privilege discount applied!'}`, "success");
+    couponCodeInput.value = "";
+    updateBagUI();
+  } catch (err) {
+    showCouponMsg(`Could not validate coupon: ${err.message}`, "error");
+  } finally {
+    applyCouponBtn.disabled = false;
+    applyCouponBtn.textContent = "Apply";
+  }
+}
+
+function handleRemoveCouponClick() {
+  appliedCoupon = null;
+  localStorage.removeItem("aura_applied_coupon");
+  showCouponMsg("Coupon removed.", "success");
+  setTimeout(() => {
+    if (couponMsg) couponMsg.style.display = "none";
+  }, 2000);
+  updateBagUI();
+}
+
+function showCouponMsg(msg, type = "error") {
+  if (!couponMsg) return;
+  couponMsg.textContent = msg;
+  couponMsg.className = `coupon-msg ${type}`;
+  couponMsg.style.display = "block";
+}
+
+// =====================================================================
+// Checkout & Order Placement Logic (Auth Protected)
+// =====================================================================
+
+function handleCheckoutClick() {
+  if (bagItems.length === 0) {
+    alert("Your shopping bag is empty. Please add items to proceed with checkout.");
+    return;
+  }
+
+  // If user is guest/not logged in, prompt Auth Modal with checkout context
+  if (!currentUser) {
+    openAuthModal("login", true);
+    return;
+  }
+
+  executeOrderCheckout();
+}
+
+async function executeOrderCheckout() {
+  if (bagItems.length === 0) return;
+
+  let subtotal = 0;
+  bagItems.forEach(i => subtotal += (i.price || 0));
+
+  let discountAmount = 0;
+  if (appliedCoupon && appliedCoupon.discount_percent) {
+    discountAmount = parseFloat((subtotal * (appliedCoupon.discount_percent / 100.0)).toFixed(2));
+  }
+
+  let finalPayable = Math.max(1.0, parseFloat((subtotal - discountAmount).toFixed(2)));
+  const inrFinalPayable = Math.max(1, getPriceINR(finalPayable));
+  const inrSubtotal = getPriceINR(subtotal);
+  const inrDiscount = getPriceINR(discountAmount);
+
+  checkoutBtn.disabled = true;
+  checkoutBtn.textContent = "Initiating Payment...";
+
+  try {
+    // 1. Create Razorpay Order on Backend in INR Rupees
+    const orderRes = await fetch(`${API_BASE}/api/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: inrFinalPayable,
+        currency: "INR",
+        receipt: `rcpt_${Date.now().toString(36)}`
+      })
+    });
+
+    const orderData = await orderRes.json();
+    if (!orderRes.ok || !orderData.order_id) {
+      throw new Error(orderData.detail || "Failed to initialize payment gateway.");
+    }
+
+    // 2. Open Razorpay Standard Checkout Modal
+    const options = {
+      key: orderData.key_id,
+      amount: orderData.amount,
+      currency: orderData.currency || "INR",
+      name: "AURA Luxury Fashion",
+      description: appliedCoupon ? `Curated Order (Coupon: ${appliedCoupon.code})` : "Curated Fashion Capsule Order",
+      image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=200&auto=format&fit=crop",
+      order_id: orderData.order_id,
+      handler: async function (response) {
+        checkoutBtn.textContent = "Verifying Payment...";
+        
+        try {
+          // 3. Verify Payment Signature on Backend with Coupon details
+          const verifyRes = await fetch(`${API_BASE}/api/verify-payment`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              email: currentUser.email,
+              items: bagItems,
+              total: inrFinalPayable,
+              subtotal: inrSubtotal,
+              coupon_code: appliedCoupon ? appliedCoupon.code : null,
+              discount_amount: inrDiscount
+            })
+          });
+
+          const verifyData = await verifyRes.json();
+          if (!verifyRes.ok || !verifyData.success) {
+            throw new Error(verifyData.detail || "Payment signature verification failed.");
+          }
+
+          // Payment successfully verified & recorded in MongoDB
+          bagItems = [];
+          appliedCoupon = null;
+          localStorage.setItem("aura_bag", JSON.stringify(bagItems));
+          localStorage.removeItem("aura_applied_coupon");
+          updateBagUI();
+
+          bagDrawer.style.display = "none";
+          if (orderRefId) {
+            orderRefId.innerHTML = `${verifyData.order_id || 'ORD-AURA-2026'} <br><small style="color:var(--text-secondary);font-size:0.75rem;">(Razorpay ID: ${response.razorpay_payment_id}${verifyData.coupon_code ? ' | Coupon: ' + verifyData.coupon_code : ''})</small>`;
+          }
+          if (orderRefTotal) orderRefTotal.textContent = formatINR(finalPayable);
+          if (orderSuccessModal) orderSuccessModal.style.display = "flex";
+        } catch (vErr) {
+          alert(`Verification Error: ${vErr.message}`);
+        } finally {
+          checkoutBtn.disabled = false;
+          checkoutBtn.textContent = "Proceed to Checkout";
+        }
+      },
+      prefill: {
+        name: currentUser.name || "Customer",
+        email: currentUser.email || "",
+        contact: currentUser.phone || "9999999999"
+      },
+      notes: {
+        customer_email: currentUser.email,
+        item_count: bagItems.length.toString(),
+        coupon_code: appliedCoupon ? appliedCoupon.code : "None"
+      },
+      theme: {
+        color: "#c5a059" // AURA signature luxury gold accent
+      },
+      modal: {
+        ondismiss: function () {
+          console.log("Razorpay checkout modal dismissed by user");
+          checkoutBtn.disabled = false;
+          checkoutBtn.textContent = "Proceed to Checkout";
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+
+    rzp.on('payment.failed', function (response) {
+      alert(`Payment Failed: ${response.error.description} (Reason: ${response.error.reason})`);
+      checkoutBtn.disabled = false;
+      checkoutBtn.textContent = "Proceed to Checkout";
+    });
+
+    rzp.open();
+  } catch (err) {
+    alert(`Checkout Error: ${err.message}`);
+    checkoutBtn.disabled = false;
+    checkoutBtn.textContent = "Proceed to Checkout";
+  }
+}
+
+// =====================================================================
+// AI Agent Chat Execution
+// =====================================================================
+
+async function executeQuery(message) {
+  if (!message || !message.trim()) return;
+
+  // Show processing animation
+  processingCard.style.display = "block";
+  clarificationCard.style.display = "none";
+  resultsSection.style.display = "none";
+  editorialHome.style.display = "none";
+  animateProcessingSteps();
+
+  try {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: message.trim(),
+        thread_id: currentThreadId
+      })
+    });
+
+    const data = await res.json();
+    handleAgentResponse(data);
+  } catch (err) {
+    console.error("API error:", err);
+    processingCard.style.display = "none";
+    if (!navigator.onLine || err?.name === 'TypeError') {
+      alert("Connection error. Please ensure the server is running on http://127.0.0.1:8000");
+    }
+  }
+}
+
+async function executeClarification(answer) {
+  if (!answer) return;
+  const cleanAns = answer.trim();
+  if (queryInput) {
+    queryInput.value = cleanAns;
+  }
+  if (clarifyInput) {
+    clarifyInput.value = cleanAns;
+  }
+  processingCard.style.display = "block";
+  clarificationCard.style.display = "none";
+  animateProcessingSteps();
+
+  try {
+    const res = await fetch(`${API_BASE}/api/clarify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        thread_id: currentThreadId,
+        answer: cleanAns
+      })
+    });
+
+    const data = await res.json();
+    handleAgentResponse(data);
+  } catch (err) {
+    console.error("Clarification error:", err);
+    processingCard.style.display = "none";
+  }
+}
+
+let currentPipelineInterval = null;
+
+const DYNAMIC_PIPELINE_FALLBACKS = [
+  [
+    { step: 1, agent: "Query Agent", thought: "Parsing modern athleisure & tailoring specifications..." },
+    { step: 2, agent: "Context Agent", thought: "Filtering occasion boundaries & climate appropriateness..." },
+    { step: 3, agent: "Search Node", thought: "Querying high-dimensional embeddings across MongoDB Atlas..." },
+    { step: 4, agent: "Validation Agent", thought: "Screening top recommendations against patron fit score..." },
+    { step: 5, agent: "Stylist Agent", thought: "Polishing the curated ensemble with bespoke designer tips..." }
+  ],
+  [
+    { step: 1, agent: "Query Agent", thought: "Decoding silhouette proportions & aesthetic vibe..." },
+    { step: 2, agent: "Context Agent", thought: "Cross-referencing runway trends & seasonal occasion..." },
+    { step: 3, agent: "Search Node", thought: "Deep-mining 44,000+ luxury pieces with Voyage AI 512-dim vectors..." },
+    { step: 4, agent: "Validation Agent", thought: "Quality-assuring fabric drape, color harmony & rating score..." },
+    { step: 5, agent: "Stylist Agent", thought: "Curating bespoke capsule pairings & editorial styling advice..." }
+  ],
+  [
+    { step: 1, agent: "Query Agent", thought: "Dissecting streetwear drip, fit profile & color harmony..." },
+    { step: 2, agent: "Context Agent", thought: "Analyzing subtle style constraints & price-to-luxury ratio..." },
+    { step: 3, agent: "Search Node", thought: "Fusing Atlas Vector Search + Keyword Rank Fusion (RRF)..." },
+    { step: 4, agent: "Validation Agent", thought: "Inspecting piece compatibility & boutique in-stock status..." },
+    { step: 5, agent: "Stylist Agent", thought: "Synthesizing Haute Couture styling notes for complete look..." }
+  ],
+  [
+    { step: 1, agent: "Query Agent", thought: "Calibrating clean-girl & quiet luxury aesthetic parameters..." },
+    { step: 2, agent: "Context Agent", thought: "Evaluating versatility for effortless day-to-night transitions..." },
+    { step: 3, agent: "Search Node", thought: "Scanning catalog archive for high-affinity editorial pieces..." },
+    { step: 4, agent: "Validation Agent", thought: "Verifying brand craftsmanship & silhouette integrity..." },
+    { step: 5, agent: "Stylist Agent", thought: "Composing matching footwear & accessory tonal accents..." }
+  ]
+];
+
+let pipelineSetIdx = 0;
+
+async function animateProcessingSteps() {
+  const container = document.getElementById("processing-steps");
+  const statusSub = document.getElementById("processing-status-sub");
+  if (!container) return;
+
+  if (currentPipelineInterval) {
+    clearInterval(currentPipelineInterval);
+    currentPipelineInterval = null;
+  }
+
+  container.innerHTML = "";
+
+  // Get dynamic step thoughts from agent endpoint or fallback pool
+  let steps = DYNAMIC_PIPELINE_FALLBACKS[pipelineSetIdx % DYNAMIC_PIPELINE_FALLBACKS.length];
+  pipelineSetIdx++;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/placeholder/pipeline-steps`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.steps && data.steps.length > 0) {
+        steps = data.steps;
+      }
+    }
+  } catch (e) {
+    // Graceful fallback
+  }
+
+  // Sequentially reveal each step with smooth animations
+  let currentStepIdx = 0;
+
+  function renderStep(idx) {
+    if (idx >= steps.length) return;
+    const item = steps[idx];
+
+    // Mark previous rows as completed
+    const previousRows = container.querySelectorAll(".step-row.active");
+    previousRows.forEach(row => {
+      row.className = "step-row done";
+      const badge = row.querySelector(".step-badge");
+      if (badge) badge.textContent = "✓";
+    });
+
+    if (statusSub) {
+      statusSub.textContent = item.thought.replace("...", "");
+    }
+
+    const row = document.createElement("div");
+    row.className = "step-row active";
+    row.id = `step-row-${item.step}`;
+    row.innerHTML = `
+      <span class="step-badge">${item.step}</span>
+      <div class="step-text">
+        <span class="agent-name">${item.agent}:</span>
+        <span class="agent-thought">${item.thought}</span>
+      </div>
+    `;
+    container.appendChild(row);
+  }
+
+  // Reveal step 1 immediately
+  renderStep(0);
+
+  // Reveal subsequent steps sequentially (~400ms each)
+  currentStepIdx = 1;
+  currentPipelineInterval = setInterval(() => {
+    if (currentStepIdx < steps.length) {
+      renderStep(currentStepIdx);
+      currentStepIdx++;
+    } else {
+      clearInterval(currentPipelineInterval);
+      currentPipelineInterval = null;
+    }
+  }, 420);
+}
+
+function handleAgentResponse(data) {
+  if (currentPipelineInterval) {
+    clearInterval(currentPipelineInterval);
+    currentPipelineInterval = null;
+  }
+
+  // Mark all steps as complete before displaying results
+  const container = document.getElementById("processing-steps");
+  if (container) {
+    container.querySelectorAll(".step-row").forEach(row => {
+      row.className = "step-row done";
+      const badge = row.querySelector(".step-badge");
+      if (badge) badge.textContent = "✓";
+    });
+  }
+
+  setTimeout(() => {
+    processingCard.style.display = "none";
+
+    if (data.needs_clarification && data.clarification_question) {
+      showClarificationCard(data.clarification_question, data.clarification_options);
+      return;
+    }
+
+    if (data.current_query && queryInput) {
+      queryInput.value = data.current_query;
+    }
+
+    // Render search results & upsells
+    renderResults(data);
+  }, 300);
+}
+
+function showClarificationCard(question, options = []) {
+  const qEl = document.getElementById("clarification-question-text") || clarifyQuestionText;
+  if (qEl) {
+    qEl.textContent = question;
+  }
+  const card = document.getElementById("clarification-card") || clarificationCard;
+  if (card) {
+    card.style.display = "flex";
+  }
+  const inputEl = document.getElementById("clarify-input") || clarifyInput;
+  if (inputEl) {
+    inputEl.value = "";
+    inputEl.focus();
+  }
+
+  // Setup dynamic suggestion pills tailored to the user's inquiry
+  const optionsEl = document.getElementById("clarification-options") || clarifyOptions;
+  if (optionsEl) {
+    optionsEl.innerHTML = "";
+    const pills = (options && options.length > 0) ? options : [
+      "Men's formal under ₹3,500",
+      "Women's casual under ₹3,000",
+      "Men's casual under ₹2,500"
+    ];
+    pills.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "clarify-pill";
+      btn.setAttribute("data-answer", opt);
+      btn.textContent = opt;
+      btn.onclick = () => {
+        if (queryInput) {
+          queryInput.value = opt;
+        }
+        executeClarification(opt);
+      };
+      optionsEl.appendChild(btn);
+    });
+  }
+}
+
+function renderResults(data) {
+  const valRes = data.validation_result || {};
+  const isValid = valRes.validated !== false;
+  const products = isValid ? (data.search_results || []) : [];
+  resultsSection.style.display = "block";
+  editorialHome.style.display = "none";
+
+  // Update headline & validation
+  interpretationHeadline.textContent = `${products.length} Curated Selections Found`;
+  
+  const valBadge = document.getElementById("validation-badge");
+  if (!isValid || products.length === 0) {
+    if (valBadge) valBadge.className = "validation-badge no-match";
+    validationText.textContent = "No Catalog Matches";
+    interpretationSub.textContent = "Inquiry analyzed through 5-agent pipeline. 0 items matched your specifications.";
+  } else {
+    if (valBadge) valBadge.className = "validation-badge";
+    validationText.textContent = valRes.explanation || "Verified by AI Concierge";
+    interpretationSub.textContent = "Prioritizing clean silhouettes, neutral palettes, and verified catalog inventory.";
+  }
+
+  // Active filter pills
+  renderFilterPills(data.filters || {});
+
+  // Product cards
+  productsGrid.innerHTML = "";
+  if (products.length === 0) {
+    const desc = valRes.explanation || "Our multi-agent pipeline analyzed your inquiry. We specialize in luxury fashion, apparel, footwear, and accessories. No items matching your request were found.";
+    productsGrid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">✦</div>
+        <h3 class="empty-state-title">No Matching Fashion Pieces Found</h3>
+        <p class="empty-state-desc">${desc}</p>
+        <div class="empty-state-actions">
+          <button class="empty-state-chip" onclick="executeQuery('Minimal black running sneakers under $80')">Running Shoes Under $80</button>
+          <button class="empty-state-chip" onclick="executeQuery('Casual blue shirt')">Casual Blue Shirt</button>
+          <button class="empty-state-chip" onclick="executeQuery('Silver watch for women under $100')">Silver Watch For Women</button>
+          <button class="empty-state-chip" onclick="window.location.reload()">Explore Autumn / Winter Editorial</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  products.forEach((prod, index) => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <div class="card-image-wrap">
+        <img src="${getSafeImageUrl(prod.image_url, index)}" alt="${prod.name}" onerror="this.src='${FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}'"/>
+        <button class="save-bookmark-btn ${isSaved(prod.product_id) ? 'active' : ''}" title="Save to Wardrobe">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="${isSaved(prod.product_id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="card-brand">${prod.brand || 'Studio'}</span>
+          <span class="card-rating">${prod.rating ? prod.rating.toFixed(1) + ' ★' : ''}</span>
+        </div>
+        <h3 class="card-title">${prod.name}</h3>
+        <div class="card-footer">
+          <span class="card-price">${formatINR(prod.price)}</span>
+          <button class="explore-outfit-btn">Complete Look</button>
+        </div>
+      </div>
+    `;
+
+    // Attach bookmark toggle
+    const bookmarkBtn = card.querySelector(".save-bookmark-btn");
+    bookmarkBtn.addEventListener("click", () => {
+      toggleWardrobe(prod);
+      bookmarkBtn.classList.toggle("active");
+      const svg = bookmarkBtn.querySelector("svg");
+      svg.setAttribute("fill", isSaved(prod.product_id) ? "currentColor" : "none");
+    });
+
+    // Attach outfit studio open
+    card.querySelector(".explore-outfit-btn").addEventListener("click", () => {
+      openOutfitStudio(prod);
+    });
+
+    productsGrid.appendChild(card);
+  });
+}
+
+function renderFilterPills(filters) {
+  activeFiltersRow.innerHTML = "";
+  if (!filters || Object.keys(filters).length === 0) return;
+
+  // Human-readable key labels
+  const keyLabels = {
+    "gender": "Gender",
+    "brand": "Brand",
+    "article_type": "Type",
+    "master_category": "Category",
+    "base_color": "Color",
+    "color": "Color",
+    "season": "Season",
+    "usage": "Usage",
+    "price": "Price",
+    "rating": "Min Rating"
+  };
+
+  for (const [key, val] of Object.entries(filters)) {
+    if (!val) continue;
+    // Skip internal/non-display fields
+    if (["stock", "_id", "id", "product_id"].includes(key)) continue;
+
+    const displayKey = keyLabels[key] || key;
+    let label = "";
+
+    if (key === "price" && typeof val === "object") {
+      if (val.$lte && val.$gte) label = `${formatINR(val.$gte)} – ${formatINR(val.$lte)}`;
+      else if (val.$lte) label = `Under ${formatINR(val.$lte)}`;
+      else if (val.$gte) label = `Above ${formatINR(val.$gte)}`;
+      else continue;
+    } else if (typeof val === "object" && val.$in) {
+      label = val.$in.join(" / ");
+    } else if (typeof val === "string") {
+      label = val;
+    } else if (typeof val === "number") {
+      label = `${displayKey}: ${val}`;
+    } else {
+      continue; // skip unrenderable complex filters
+    }
+
+    const pill = document.createElement("div");
+    pill.className = "filter-tag";
+    pill.innerHTML = `
+      <span>${label}</span>
+      <button class="remove-btn" title="Remove filter">&times;</button>
+    `;
+    pill.querySelector(".remove-btn").addEventListener("click", () => {
+      pill.remove();
+      executeQuery(`Show results without ${label}`);
+    });
+    activeFiltersRow.appendChild(pill);
+  }
+}
+
+// =====================================================================
+// Outfit Studio Modal ("Complete The Look")
+// =====================================================================
+
+async function openOutfitStudio(selectedProduct) {
+  outfitModal.style.display = "flex";
+  activeEnsembleProducts = [selectedProduct];
+
+  // Render Anchor item on Left
+  const safeImg = getSafeImageUrl(selectedProduct.image_url);
+  anchorItemPanel.innerHTML = `
+    <div class="anchor-badge">Anchor Piece</div>
+    <img src="${safeImg}" class="anchor-img" alt="${selectedProduct.name}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGES[0]}'"/>
+    <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-secondary); margin-top: 0.75rem;">${selectedProduct.brand || 'Studio'}</div>
+    <div class="anchor-name">${selectedProduct.name}</div>
+    <div class="anchor-price">${formatINR(selectedProduct.price)}</div>
+    <button class="btn-primary" style="margin-top: 1rem; width: 100%;" id="add-anchor-btn">Add Piece Only</button>
+  `;
+
+  document.getElementById("add-anchor-btn").addEventListener("click", () => {
+    addToBag(selectedProduct);
+    outfitModal.style.display = "none";
+    bagDrawer.style.display = "flex";
+  });
+
+  // Start Magic Stylist stream animation while fetching pairings
+  streamStylistInsightText(`✨ AI Runway Stylist is analyzing fabric drape, occasion, and harmonious pairings for ${selectedProduct.name}...`);
+  ensembleCardsList.innerHTML = `<div style="color: var(--text-secondary); font-size: 0.85rem; padding: 1.5rem; text-align: center;">✦ AI Stylist is composing dynamic outfit pairings...</div>`;
+  ensembleTotalPrice.textContent = formatINR(selectedProduct.price || 55.00);
+
+  let pairings = [];
+  try {
+    const res = await fetch(`${API_BASE}/api/outfit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_id: selectedProduct.product_id })
+    });
+    const data = await res.json();
+    pairings = data.outfit_pairings || [];
+  } catch (e) {
+    console.error("Error generating outfit pairings:", e);
+    pairings = [];
+  }
+
+  renderEnsembleItems(selectedProduct, pairings);
+}
+
+let stylistInsightTypewriterTimeout = null;
+
+function streamStylistInsightText(fullText) {
+  const insightBox = document.getElementById("stylist-insight-box");
+  const insightEl = document.getElementById("stylist-insight-text");
+  if (!insightEl) return;
+
+  if (stylistInsightTypewriterTimeout) {
+    clearTimeout(stylistInsightTypewriterTimeout);
+    stylistInsightTypewriterTimeout = null;
+  }
+
+  if (insightBox) insightBox.classList.add("magic-active");
+
+  let currentIdx = 0;
+  insightEl.innerHTML = `<span class="typing-cursor"></span>`;
+
+  function typeChar() {
+    if (currentIdx <= fullText.length) {
+      insightEl.innerHTML = `${fullText.slice(0, currentIdx)}<span class="typing-cursor"></span>`;
+      currentIdx++;
+      stylistInsightTypewriterTimeout = setTimeout(typeChar, 16);
+    } else {
+      insightEl.innerHTML = fullText;
+      if (insightBox) {
+        setTimeout(() => insightBox.classList.remove("magic-active"), 1500);
+      }
+    }
+  }
+
+  typeChar();
+}
+
+async function fetchAndStreamComboStylistTip(selectedProduct, pairings) {
+  let fallbackTip = "Pairs impeccably with seasonal essentials for an elevated tonal look.";
+  if (pairings && pairings.length > 0) {
+    fallbackTip = pairings[0].stylist_note || pairings[0].compatibility_reason || fallbackTip;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/placeholder/combo-suggestion`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        anchor: selectedProduct,
+        pairings: pairings
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.suggestion && data.suggestion.trim()) {
+        streamStylistInsightText(data.suggestion.trim());
+        return;
+      }
+    }
+  } catch (err) {
+    console.log("Using fallback stylist rationale:", err);
+  }
+
+  streamStylistInsightText(fallbackTip);
+}
+
+function renderEnsembleItems(selectedProduct, pairings) {
+  ensembleCardsList.innerHTML = "";
+  let total = selectedProduct.price || 55.00;
+
+  if (pairings && pairings.length > 0) {
+    // 1. Synthesize context-aware stylist combo tip using openai/gpt-oss-20b
+    fetchAndStreamComboStylistTip(selectedProduct, pairings);
+
+    // 2. Render Magical Mini Capsule Strip with blurry-to-sharp animation
+    renderMiniCapsuleStrip(selectedProduct, pairings);
+
+    // 3. Render matching piece cards
+    pairings.forEach((item, idx) => {
+      activeEnsembleProducts.push(item);
+      total += (item.price || 45.00);
+
+      const pieceCard = document.createElement("div");
+      pieceCard.className = "ensemble-piece-card";
+      pieceCard.innerHTML = `
+        <img src="${getSafeImageUrl(item.image_url, idx + 1)}" class="ensemble-piece-img" alt="${item.name}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGES[(idx + 1) % FALLBACK_IMAGES.length]}'"/>
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">${item.article_type || 'Complementary'}</div>
+        <div class="ensemble-piece-name">${item.name}</div>
+        <div class="ensemble-piece-price">${formatINR(item.price)}</div>
+      `;
+      ensembleCardsList.appendChild(pieceCard);
+    });
+  } else {
+    streamStylistInsightText("A clean neutral silhouette that pairs seamlessly with minimalist denim and linen tailoring.");
+    const strip = document.getElementById("magic-capsule-strip");
+    if (strip) strip.style.display = "none";
+  }
+
+  ensembleTotalPrice.textContent = formatINR(total);
+}
+
+function renderMiniCapsuleStrip(selectedProduct, pairings) {
+  const strip = document.getElementById("magic-capsule-strip");
+  const miniContainer = document.getElementById("capsule-mini-items");
+  if (!strip || !miniContainer) return;
+
+  miniContainer.innerHTML = "";
+  if (!pairings || pairings.length === 0) {
+    strip.style.display = "none";
+    return;
+  }
+
+  strip.style.display = "block";
+
+  // Anchor piece + Up to 3 complementary pieces
+  const allCapsuleItems = [
+    { ...selectedProduct, isAnchor: true, roleName: "Anchor Piece" },
+    ...pairings.slice(0, 3).map((p, i) => ({ ...p, isAnchor: false, roleName: p.article_type || `Pairing ${i + 1}` }))
+  ];
+
+  allCapsuleItems.forEach((item, index) => {
+    const miniCard = document.createElement("div");
+    miniCard.className = "capsule-mini-card";
+    miniCard.style.animationDelay = `${index * 130}ms`; // Smooth staggered blur-to-sharp reveal
+    miniCard.innerHTML = `
+      <img src="${getSafeImageUrl(item.image_url, index)}" class="capsule-mini-img" alt="${item.name}" onerror="this.src='${FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}'"/>
+      <div class="capsule-mini-info">
+        <span class="capsule-mini-role">${item.isAnchor ? '✦ ' + item.roleName : item.roleName}</span>
+        <span class="capsule-mini-name" title="${item.name}">${item.name}</span>
+        <span class="capsule-mini-price">${formatINR(item.price)}</span>
+      </div>
+    `;
+    miniContainer.appendChild(miniCard);
+  });
+}
+
+// =====================================================================
+// Wardrobe & Bag State Management
+// =====================================================================
+
+function isSaved(productId) {
+  return wardrobeItems.some(item => item.product_id === productId);
+}
+
+function toggleWardrobe(product) {
+  if (isSaved(product.product_id)) {
+    wardrobeItems = wardrobeItems.filter(item => item.product_id !== product.product_id);
+  } else {
+    wardrobeItems.push(product);
+  }
+  localStorage.setItem("aura_wardrobe", JSON.stringify(wardrobeItems));
+  updateWardrobeUI();
+  syncUserDataWithMongo();
+}
+
+function removeFromWardrobe(index) {
+  wardrobeItems.splice(index, 1);
+  localStorage.setItem("aura_wardrobe", JSON.stringify(wardrobeItems));
+  updateWardrobeUI();
+  syncUserDataWithMongo();
+}
+
+function updateWardrobeUI() {
+  wardrobeCount.textContent = wardrobeItems.length;
+  drawerWardrobeCount.textContent = wardrobeItems.length;
+
+  if (wardrobeItems.length === 0) {
+    wardrobeItemsList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">✦</div>
+        <h4 class="empty-state-title">Your Wardrobe is Awaiting Curation</h4>
+        <p class="empty-state-desc">Save pieces from the collection using the bookmark icon to mix, match, and compose bespoke looks.</p>
+      </div>
+    `;
+    return;
+  }
+
+  wardrobeItemsList.innerHTML = "";
+  wardrobeItems.forEach((item, index) => {
+    const row = document.createElement("div");
+    row.className = "wardrobe-item-row";
+    row.innerHTML = `
+      <img src="${getSafeImageUrl(item.image_url)}" class="wardrobe-item-img" alt="${item.name}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGES[0]}'"/>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 2px;">${item.brand || 'Studio'}</div>
+        <div style="font-weight: 500; font-size: 0.88rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</div>
+        <div style="font-weight: 600; margin-top: 0.25rem; font-size: 0.95rem;">${formatINR(item.price)}</div>
+        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center;">
+          <button class="btn-primary wardrobe-add-btn" style="padding: 0.35rem 0.75rem; font-size: 0.72rem;">Add to Bag</button>
+          <button class="wardrobe-remove-btn">Remove</button>
+        </div>
+      </div>
+    `;
+    row.querySelector(".wardrobe-add-btn").addEventListener("click", () => addToBag(item));
+    row.querySelector(".wardrobe-remove-btn").addEventListener("click", () => removeFromWardrobe(index));
+    wardrobeItemsList.appendChild(row);
+  });
+}
+
+function addToBag(product) {
+  bagItems.push(product);
+  localStorage.setItem("aura_bag", JSON.stringify(bagItems));
+  updateBagUI();
+  syncUserDataWithMongo();
+}
+
+function removeFromBag(index) {
+  bagItems.splice(index, 1);
+  localStorage.setItem("aura_bag", JSON.stringify(bagItems));
+  updateBagUI();
+  syncUserDataWithMongo();
+}
+
+function updateBagUI() {
+  bagCount.textContent = bagItems.length;
+  drawerBagCount.textContent = bagItems.length;
+
+  if (bagItems.length === 0) {
+    bagItemsList.innerHTML = `<p class="empty-msg">Your shopping bag is currently empty.</p>`;
+    bagSubtotal.textContent = "₹0";
+    if (bagSubtotalVal) bagSubtotalVal.textContent = "₹0";
+    if (bagDiscountRow) bagDiscountRow.style.display = "none";
+    if (couponAppliedBadge) couponAppliedBadge.style.display = "none";
+    return;
+  }
+
+  bagItemsList.innerHTML = "";
+  let subtotal = 0;
+
+  bagItems.forEach((item, index) => {
+    subtotal += (item.price || 0);
+    const row = document.createElement("div");
+    row.className = "cart-item-row";
+    row.innerHTML = `
+      <img src="${getSafeImageUrl(item.image_url, index)}" class="cart-item-img" alt="${item.name}"/>
+      <div style="flex: 1;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">${item.brand || 'Studio'}</div>
+        <div style="font-weight: 500; font-size: 0.9rem;">${item.name}</div>
+        <div style="font-weight: 600; margin-top: 0.25rem;">${formatINR(item.price)}</div>
+      </div>
+      <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;" title="Remove">&times;</button>
+    `;
+    row.querySelector("button").addEventListener("click", () => removeFromBag(index));
+    bagItemsList.appendChild(row);
+  });
+
+  if (bagSubtotalVal) bagSubtotalVal.textContent = formatINR(subtotal);
+
+  let discount = 0;
+  if (appliedCoupon && appliedCoupon.discount_percent) {
+    discount = (subtotal * (appliedCoupon.discount_percent / 100.0));
+    if (bagDiscountRow) {
+      bagDiscountRow.style.display = "flex";
+      if (discountPctLabel) discountPctLabel.textContent = `${appliedCoupon.discount_percent}%`;
+      if (bagDiscountVal) bagDiscountVal.textContent = `-${formatINR(discount)}`;
+    }
+    if (couponAppliedBadge) {
+      couponAppliedBadge.style.display = "inline-flex";
+      if (couponAppliedText) couponAppliedText.textContent = `${appliedCoupon.code} Applied (-${appliedCoupon.discount_percent}%)`;
+    }
+  } else {
+    if (bagDiscountRow) bagDiscountRow.style.display = "none";
+    if (couponAppliedBadge) couponAppliedBadge.style.display = "none";
+  }
+
+  const finalPayable = Math.max(0.0, subtotal - discount);
+  bagSubtotal.textContent = formatINR(finalPayable);
+}
+
+// =====================================================================
+// Load Initial Editorial Trending Curations
+// =====================================================================
+
+async function loadTrendingCurations() {
+  try {
+    const res = await fetch(`${API_BASE}/api/trending`);
+    const data = await res.json();
+    const curations = data.curations || [];
+
+    editorialGrid.innerHTML = "";
+    curations.slice(0, 6).forEach((prod, index) => {
+      const card = document.createElement("div");
+      card.className = "product-card";
+      card.innerHTML = `
+        <div class="card-image-wrap">
+          <img src="${getSafeImageUrl(prod.image_url, index)}" alt="${prod.name}" onerror="this.src='${FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]}'"/>
+          <span class="card-badge">Editorial Pick</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-brand">${prod.brand || 'Studio'}</span>
+            <span class="card-rating">${prod.rating ? prod.rating.toFixed(1) + ' ★' : ''}</span>
+          </div>
+          <h3 class="card-title">${prod.name}</h3>
+          <div class="card-footer">
+            <span class="card-price">${formatINR(prod.price)}</span>
+            <button class="explore-outfit-btn">Complete Look</button>
+          </div>
+        </div>
+      `;
+
+      card.querySelector(".explore-outfit-btn").addEventListener("click", () => openOutfitStudio(prod));
+      editorialGrid.appendChild(card);
+    });
+  } catch (err) {
+    console.log("Notice: Starting up backend server for editorial loading...");
+  }
+}
+
+// =====================================================================
+// Dynamic Streaming Placeholder Agent (openai/gpt-oss-20b)
+// =====================================================================
+
+const DEFAULT_CATALOG_PROMPTS_CLIENT = [
+  "Minimal black running sneakers under ₹4,000...",
+  "Blue casual cotton shirt for dinner...",
+  "White summer linen dress under ₹3,000...",
+  "Men slim fit black formal trousers...",
+  "Classic silver chronograph watch under ₹5,000...",
+  "Navy blue hooded sweatshirt for winter...",
+  "Women casual floral print top under ₹2,250...",
+  "Puma breathable sports running shoes...",
+  "Beige tailored semi-formal blazer...",
+  "Black leather crossbody handbag...",
+  "Olive green casual cargo pants...",
+  "Red round neck cotton t-shirt under ₹1,500...",
+  "Brown formal leather shoes for office...",
+  "Unisex vintage black sunglasses..."
+];
+
+let placeholderPool = [...DEFAULT_CATALOG_PROMPTS_CLIENT];
+let placeholderIndex = 0;
+let isUserTypingOrFocused = false;
+let currentTypewriterTimeout = null;
+
+async function fetchFreshPlaceholderBatch() {
+  try {
+    const res = await fetch(`${API_BASE}/api/placeholder/batch?count=6`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.prompts && data.prompts.length > 0) {
+        placeholderPool.push(...data.prompts);
+      }
+    }
+  } catch (e) {
+    // Resilient client fallback
+  }
+}
+
+async function getNextGenzPrompt() {
+  try {
+    const res = await fetch(`${API_BASE}/api/placeholder/next`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.prompt) return data.prompt;
+    }
+  } catch (e) {}
+
+  const prompt = placeholderPool[placeholderIndex % placeholderPool.length];
+  placeholderIndex++;
+  return prompt;
+}
+
+function initDynamicPlaceholderAgent() {
+  const inputEl = document.getElementById("query-input");
+  if (!inputEl) return;
+
+  inputEl.addEventListener("focus", () => {
+    isUserTypingOrFocused = true;
+    if (currentTypewriterTimeout) clearTimeout(currentTypewriterTimeout);
+    inputEl.placeholder = "Describe any outfit, aesthetic, brand, or occasion...";
+  });
+
+  inputEl.addEventListener("blur", () => {
+    isUserTypingOrFocused = false;
+    if (!inputEl.value.trim()) {
+      if (currentTypewriterTimeout) clearTimeout(currentTypewriterTimeout);
+      runPlaceholderCycle();
+    }
+  });
+
+  inputEl.addEventListener("input", () => {
+    if (inputEl.value && inputEl.value.trim()) {
+      isUserTypingOrFocused = true;
+      if (currentTypewriterTimeout) clearTimeout(currentTypewriterTimeout);
+    }
+  });
+
+  // Pre-fetch fresh creative prompts from openai/gpt-oss-20b
+  fetchFreshPlaceholderBatch();
+
+  // Start the 10-second streaming cycle
+  runPlaceholderCycle();
+}
+
+async function runPlaceholderCycle() {
+  const inputEl = document.getElementById("query-input");
+  if (!inputEl) return;
+  if (isUserTypingOrFocused || (inputEl.value && inputEl.value.trim())) return;
+
+  const targetPrompt = await getNextGenzPrompt();
+  const prefix = "e.g., '";
+  const suffix = "'";
+  const fullText = `${prefix}${targetPrompt}${suffix}`;
+
+  let currentLength = prefix.length;
+  inputEl.placeholder = prefix;
+
+  // Step 1: Sequential Typewriter (Token/Character streaming appearance)
+  function typeChar() {
+    if (isUserTypingOrFocused || (inputEl.value && inputEl.value.trim())) return;
+
+    if (currentLength <= fullText.length) {
+      inputEl.placeholder = fullText.slice(0, currentLength);
+      currentLength++;
+      currentTypewriterTimeout = setTimeout(typeChar, 28); // Silky ~28ms streaming speed
+    } else {
+      // Step 2: Stay displayed for 3.5 seconds (as requested for styling & reading)
+      currentTypewriterTimeout = setTimeout(eraseChar, 3500);
+    }
+  }
+
+  // Step 3: Sequential Erase (Disappear line-wise / character-wise)
+  function eraseChar() {
+    if (isUserTypingOrFocused || (inputEl.value && inputEl.value.trim())) return;
+
+    if (currentLength >= prefix.length) {
+      inputEl.placeholder = fullText.slice(0, currentLength);
+      currentLength--;
+      currentTypewriterTimeout = setTimeout(eraseChar, 14); // Fast ~14ms erase
+    } else {
+      // Step 4: Pause briefly and launch next Gen-Z prompt (~10s total cycle)
+      currentTypewriterTimeout = setTimeout(runPlaceholderCycle, 800);
+    }
+  }
+
+  typeChar();
+}
+
