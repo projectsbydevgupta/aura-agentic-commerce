@@ -370,6 +370,8 @@ The platform registers **55 total API routes** (47 in `server.py` and 8 in `src/
 
 ## 10. Evaluation 2 — Multi-Agent Benchmarks (120 Runs & 10 Criteria)
 
+> 📄 **Evaluation Report**: The full benchmark documentation is available in [docs/AURA - Agentic Commerce MAS Evaluation 2.pdf](<docs/AURA - Agentic Commerce MAS Evaluation 2.pdf>).
+
 AURA has been rigorously evaluated against the **10 Minimum Evaluation Criteria** established for the Agentic AI curriculum. All metrics are measured from real executions (no synthetic values).
 
 ### 10.1 Compliance with the 10 Course Criteria

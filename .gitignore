@@ -8,6 +8,12 @@
 .env.*
 !.env.example
 
+# Excluded Documents & Internal Notes
+*.docx
+*.doc
+*Synopsis*
+*synopsis*
+
 # Python Cache & Bytecode
 __pycache__/
 *.py[cod]
