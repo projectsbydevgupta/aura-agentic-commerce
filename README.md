@@ -6,6 +6,9 @@
 [![Groq Cloud](https://img.shields.io/badge/Groq-Llama%203%20%2F%20GPT--OSS-f55036.svg)](https://groq.com/)
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Vector%20Search-47A248.svg)](https://www.mongodb.com/atlas)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CrewAI](https://img.shields.io/badge/CrewAI-Supervisor--Worker-red.svg)](https://crewai.com/)
+[![Google ADK](https://img.shields.io/badge/Google--ADK-Autonomous--Buyer-blue.svg)](https://github.com/google)
+[![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-green.svg)](https://modelcontextprotocol.io/)
 
 > An agentic multi-agent conversational commerce platform that replaces static keyword filters with collaborative cognitive agents: natural language query analysis, interactive Human-in-the-Loop context clarification, MongoDB Atlas hybrid vector search, critic validation gates, and dynamic AI styling.
 
@@ -60,6 +63,20 @@ User / Client Request
 ```
 
 ---
+
+---
+
+## Agentic Paradigms & Supported Frameworks
+
+AURA combines and benchmarks multiple foundational Multi-Agent System (MAS) paradigms and protocols:
+
+| Framework / Pattern | Module | Role & Implementation Details |
+| :--- | :--- | :--- |
+| **Blackboard Architecture** | `src/blackboard/` | **Shared-Memory State Coordination**: Central shared state (`BlackboardState`) and event bus with an Arbiter control loop. Decoupled Knowledge Sources (`KS_Query`, `KS_Search`, `KS_Stylist`) asynchronously read and update shared state without peer-to-peer coupling. |
+| **Hierarchical CrewAI** | `src/crews/` | **Supervisor-Worker Pattern**: Orchestrates a hierarchical team of specialized agents (Catalog Scout, Style Coordinator, QA Inspector) with structured task delegation, backed by deterministic fallbacks. |
+| **Google ADK Autonomous Buyer** | `src/adk_agents/` | **Client-Side Buyer Representation**: Autonomous buyer agent acting on behalf of a human user to negotiate promo vouchers (`AURA20`), enforce spend ceilings, and execute programmatic orders. |
+| **Agent-to-Agent (A2A) Protocol** | `src/protocol/` | **Cross-Framework Commerce**: Interoperability channel connecting heterogeneous agent frameworks (Google ADK Buyer <-> CrewAI Merchant) using standardized `A2AMessageEnvelope` payloads. |
+| **Model Context Protocol (MCP)** | `src/mcp/` | **Standardized Tool Layer**: Standardized MCP-compliant tool servers exposing `catalog_hybrid_search` and `financial_fx_calculator` (currency conversion, discount logic, luxury tax). |
 
 ## Quick Start
 
