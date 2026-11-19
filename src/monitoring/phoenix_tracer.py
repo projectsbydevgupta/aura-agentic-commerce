@@ -83,8 +83,9 @@ class PhoenixTracer:
             })
             self.provider = TracerProvider(resource=resource)
 
-            # 1. Cloud Exporter (Arize Phoenix Cloud space)
-            if self.endpoint:
+            # 1. Cloud Exporter (Arize Phoenix Cloud space - only when a live key is configured)
+            is_placeholder_key = "As3Yw3IgHqcJMtFM33" in (self.api_key or "") or not self.api_key
+            if self.endpoint and not is_placeholder_key:
                 headers = {}
                 if self.api_key:
                     headers["Authorization"] = f"Bearer {self.api_key}"
@@ -92,10 +93,14 @@ class PhoenixTracer:
                     cloud_exporter = OTLPSpanExporter(
                         endpoint=self.endpoint,
                         headers=headers,
-                        timeout=5
+                        timeout=3
                     )
-                    # Use BatchSpanProcessor for non-blocking asynchronous dispatch
-                    self.provider.add_span_processor(BatchSpanProcessor(cloud_exporter))
+                    self.provider.add_span_processor(BatchSpanProcessor(
+                        cloud_exporter,
+                        max_queue_size=256,
+                        schedule_delay_millis=5000,
+                        export_timeout_millis=1500
+                    ))
                 except Exception as ce:
                     logger.debug(f"Cloud Phoenix exporter init skipped: {ce}")
 

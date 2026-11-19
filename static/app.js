@@ -813,19 +813,21 @@ async function executeOrderCheckout() {
 async function executeQuery(message) {
   if (!message || !message.trim()) return;
 
-  // Show processing animation
+  const cleanMsg = message.trim();
+
+  // Show processing animation immediately
   processingCard.style.display = "block";
   clarificationCard.style.display = "none";
   resultsSection.style.display = "none";
   editorialHome.style.display = "none";
-  animateProcessingSteps();
+  animateProcessingSteps(cleanMsg);
 
   try {
     const res = await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: message.trim(),
+        message: cleanMsg,
         thread_id: currentThreadId
       })
     });
@@ -852,7 +854,7 @@ async function executeClarification(answer) {
   }
   processingCard.style.display = "block";
   clarificationCard.style.display = "none";
-  animateProcessingSteps();
+  animateProcessingSteps(cleanAns, true);
 
   try {
     const res = await fetch(`${API_BASE}/api/clarify`, {
@@ -874,40 +876,54 @@ async function executeClarification(answer) {
 
 let currentPipelineInterval = null;
 
-const DYNAMIC_PIPELINE_FALLBACKS = [
-  [
-    { step: 1, agent: "Query Agent", thought: "Parsing modern athleisure & tailoring specifications..." },
-    { step: 2, agent: "Context Agent", thought: "Filtering occasion boundaries & climate appropriateness..." },
-    { step: 3, agent: "Search Node", thought: "Querying high-dimensional embeddings across MongoDB Atlas..." },
-    { step: 4, agent: "Validation Agent", thought: "Screening top recommendations against patron fit score..." },
-    { step: 5, agent: "Stylist Agent", thought: "Polishing the curated ensemble with bespoke designer tips..." }
-  ],
-  [
-    { step: 1, agent: "Query Agent", thought: "Decoding silhouette proportions & aesthetic vibe..." },
-    { step: 2, agent: "Context Agent", thought: "Cross-referencing runway trends & seasonal occasion..." },
-    { step: 3, agent: "Search Node", thought: "Deep-mining 44,000+ luxury pieces with Voyage AI 512-dim vectors..." },
-    { step: 4, agent: "Validation Agent", thought: "Quality-assuring fabric drape, color harmony & rating score..." },
-    { step: 5, agent: "Stylist Agent", thought: "Curating bespoke capsule pairings & editorial styling advice..." }
-  ],
-  [
-    { step: 1, agent: "Query Agent", thought: "Dissecting streetwear drip, fit profile & color harmony..." },
-    { step: 2, agent: "Context Agent", thought: "Analyzing subtle style constraints & price-to-luxury ratio..." },
-    { step: 3, agent: "Search Node", thought: "Fusing Atlas Vector Search + Keyword Rank Fusion (RRF)..." },
-    { step: 4, agent: "Validation Agent", thought: "Inspecting piece compatibility & boutique in-stock status..." },
-    { step: 5, agent: "Stylist Agent", thought: "Synthesizing Haute Couture styling notes for complete look..." }
-  ],
-  [
-    { step: 1, agent: "Query Agent", thought: "Calibrating clean-girl & quiet luxury aesthetic parameters..." },
-    { step: 2, agent: "Context Agent", thought: "Evaluating versatility for effortless day-to-night transitions..." },
-    { step: 3, agent: "Search Node", thought: "Scanning catalog archive for high-affinity editorial pieces..." },
-    { step: 4, agent: "Validation Agent", thought: "Verifying brand craftsmanship & silhouette integrity..." },
-    { step: 5, agent: "Stylist Agent", thought: "Composing matching footwear & accessory tonal accents..." }
-  ]
-];
+function buildContextualSteps(query, isClarification = false) {
+  const q = (query || "").toLowerCase();
 
-let pipelineSetIdx = 0;
+  let budgetStr = "";
+  const priceMatch = query ? query.match(/(?:under|below|less than|within|around|\$|₹|rs\.?)\s*(\d+(?:,\d+)*(?:\.\d+)?)/i) : null;
+  if (priceMatch) {
+    budgetStr = ` (budget ceiling: ${priceMatch[0].trim()})`;
+  }
 
-async function animateProcessingSteps() {
+  let genderStr = "catalog items";
+  if (q.includes("men") || q.includes("man") || q.includes("male") || q.includes("boy")) {
+    genderStr = "Men's fashion parameters";
+  } else if (q.includes("women") || q.includes("woman") || q.includes("female") || q.includes("girl") || q.includes("ladies")) {
+    genderStr = "Women's luxury parameters";
+  }
+
+  let catStr = "fashion silhouettes";
+  if (q.includes("shoe") || q.includes("sneaker") || q.includes("running") || q.includes("boot") || q.includes("loafer")) {
+    catStr = "Footwear & Sports Shoes";
+  } else if (q.includes("shirt") || q.includes("tshirt") || q.includes("top") || q.includes("blouse") || q.includes("kurta")) {
+    catStr = "Apparel & Shirts";
+  } else if (q.includes("watch") || q.includes("bag") || q.includes("handbag") || q.includes("wallet") || q.includes("belt")) {
+    catStr = "Accessories & Timepieces";
+  } else if (q.includes("jean") || q.includes("pant") || q.includes("trouser") || q.includes("short")) {
+    catStr = "Bottomwear & Denim";
+  }
+
+  const querySnippet = query ? query.slice(0, 38) : "Inquiry";
+
+  if (isClarification) {
+    return [
+      { step: 1, agent: "Clarification Agent", role: "Dialog Context", thought: `Integrating patron response "${querySnippet}" into active thread...` },
+      { step: 2, agent: "Search Node", role: "Hybrid Vector Retrieval", thought: `Re-querying 44,424 catalog items matching clarified ${catStr}...` },
+      { step: 3, agent: "Validation Agent", role: "Quality Assurance", thought: `Verifying pieces strictly adhere to updated criteria${budgetStr}...` },
+      { step: 4, agent: "Stylist Upsell Agent", role: "Haute Couture Stylist", thought: `Synthesizing curated capsule look and complementary pairings...` }
+    ];
+  }
+
+  return [
+    { step: 1, agent: "Query Agent", role: "Intent & Taxonomy Parser", thought: `Analyzing intent: "${querySnippet}" — extracting ${genderStr}, ${catStr}${budgetStr}...` },
+    { step: 2, agent: "Context Agent", role: "Context & Dialogue Evaluator", thought: `Auditing dialogue history & checking if additional style clarification is required...` },
+    { step: 3, agent: "Search Node", role: "Hybrid Vector Engine", thought: `Deep-mining 44,424 authentic catalog items via Voyage AI & RRF rank fusion...` },
+    { step: 4, agent: "Validation Agent", role: "Quality Assurance Guard", thought: `Enforcing strict budget limits${budgetStr} & catalog craftsmanship verification...` },
+    { step: 5, agent: "Stylist Upsell Agent", role: "Personal Haute Stylist", thought: `Curating bespoke capsule pairings & editorial styling advice for complete look...` }
+  ];
+}
+
+function animateProcessingSteps(queryText, isClarification = false) {
   const container = document.getElementById("processing-steps");
   const statusSub = document.getElementById("processing-status-sub");
   if (!container) return;
@@ -919,86 +935,100 @@ async function animateProcessingSteps() {
 
   container.innerHTML = "";
 
-  // Get dynamic step thoughts from agent endpoint or fallback pool
-  let steps = DYNAMIC_PIPELINE_FALLBACKS[pipelineSetIdx % DYNAMIC_PIPELINE_FALLBACKS.length];
-  pipelineSetIdx++;
+  const steps = buildContextualSteps(queryText, isClarification);
 
-  try {
-    const res = await fetch(`${API_BASE}/api/placeholder/pipeline-steps`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.steps && data.steps.length > 0) {
-        steps = data.steps;
-      }
-    }
-  } catch (e) {
-    // Graceful fallback
-  }
-
-  // Sequentially reveal each step with smooth animations
-  let currentStepIdx = 0;
-
-  function renderStep(idx) {
-    if (idx >= steps.length) return;
-    const item = steps[idx];
-
-    // Mark previous rows as completed
-    const previousRows = container.querySelectorAll(".step-row.active");
-    previousRows.forEach(row => {
-      row.className = "step-row done";
-      const badge = row.querySelector(".step-badge");
-      if (badge) badge.textContent = "✓";
-    });
-
-    if (statusSub) {
-      statusSub.textContent = item.thought.replace("...", "");
-    }
-
+  // Pre-render all rows so user clearly sees the entire agent team progression
+  steps.forEach((item, idx) => {
     const row = document.createElement("div");
-    row.className = "step-row active";
+    row.className = idx === 0 ? "step-row active" : "step-row pending";
     row.id = `step-row-${item.step}`;
     row.innerHTML = `
-      <span class="step-badge">${item.step}</span>
+      <span class="step-badge">${idx === 0 ? "1" : item.step}</span>
       <div class="step-text">
         <span class="agent-name">${item.agent}:</span>
         <span class="agent-thought">${item.thought}</span>
       </div>
     `;
     container.appendChild(row);
+  });
+
+  if (statusSub) {
+    statusSub.textContent = steps[0].thought.replace("...", "");
   }
 
-  // Reveal step 1 immediately
-  renderStep(0);
+  let activeIdx = 0;
+  const stepDurations = [900, 1600, 2800, 4200]; // milliseconds to transition each agent
 
-  // Reveal subsequent steps sequentially (~400ms each)
-  currentStepIdx = 1;
-  currentPipelineInterval = setInterval(() => {
-    if (currentStepIdx < steps.length) {
-      renderStep(currentStepIdx);
-      currentStepIdx++;
-    } else {
-      clearInterval(currentPipelineInterval);
-      currentPipelineInterval = null;
-    }
-  }, 420);
+  const stepTimeouts = [];
+
+  stepDurations.forEach((delay, i) => {
+    const targetIdx = i + 1;
+    if (targetIdx >= steps.length) return;
+
+    const t = setTimeout(() => {
+      // Mark previous step done
+      const prevRow = document.getElementById(`step-row-${steps[targetIdx - 1].step}`);
+      if (prevRow) {
+        prevRow.className = "step-row done";
+        const badge = prevRow.querySelector(".step-badge");
+        if (badge) badge.textContent = "✓";
+      }
+
+      // Mark current step active
+      const currRow = document.getElementById(`step-row-${steps[targetIdx].step}`);
+      if (currRow) {
+        currRow.className = "step-row active";
+        if (statusSub) {
+          statusSub.textContent = steps[targetIdx].thought.replace("...", "");
+        }
+      }
+    }, delay);
+
+    stepTimeouts.push(t);
+  });
+
+  currentPipelineInterval = { timeouts: stepTimeouts };
 }
 
 function handleAgentResponse(data) {
-  if (currentPipelineInterval) {
-    clearInterval(currentPipelineInterval);
+  // Clear any pending step timeouts
+  if (currentPipelineInterval && currentPipelineInterval.timeouts) {
+    currentPipelineInterval.timeouts.forEach(t => clearTimeout(t));
     currentPipelineInterval = null;
   }
 
-  // Mark all steps as complete before displaying results
   const container = document.getElementById("processing-steps");
+  const statusSub = document.getElementById("processing-status-sub");
+
   if (container) {
-    container.querySelectorAll(".step-row").forEach(row => {
-      row.className = "step-row done";
-      const badge = row.querySelector(".step-badge");
-      if (badge) badge.textContent = "✓";
-    });
+    // If clarification is needed, mark up to context agent done
+    if (data.needs_clarification) {
+      container.querySelectorAll(".step-row").forEach((row, i) => {
+        if (i <= 1) {
+          row.className = "step-row done";
+          const badge = row.querySelector(".step-badge");
+          if (badge) badge.textContent = "✓";
+        } else {
+          row.style.display = "none";
+        }
+      });
+      if (statusSub) {
+        statusSub.textContent = "Clarification needed from patron";
+      }
+    } else {
+      // Mark all completed steps as done with checkmarks
+      container.querySelectorAll(".step-row").forEach(row => {
+        row.className = "step-row done";
+        const badge = row.querySelector(".step-badge");
+        if (badge) badge.textContent = "✓";
+      });
+      if (statusSub) {
+        statusSub.textContent = "All Agents Complete • Curated Look Ready";
+      }
+    }
   }
 
+  // Smoothly transition to results or clarification after brief moment
   setTimeout(() => {
     processingCard.style.display = "none";
 
@@ -1013,7 +1043,7 @@ function handleAgentResponse(data) {
 
     // Render search results & upsells
     renderResults(data);
-  }, 300);
+  }, 450);
 }
 
 function showClarificationCard(question, options = []) {

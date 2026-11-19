@@ -78,6 +78,18 @@ class StructuredGroqWrapper:
             )
         content = resp.choices[0].message.content
         data = json.loads(content)
+        if isinstance(data, dict):
+            fields = getattr(self.schema, "__fields__", {})
+            for k, field in fields.items():
+                if k in data and data[k] is None:
+                    if getattr(field, "default_factory", None) is not None:
+                        data[k] = field.default_factory()
+                    elif getattr(field, "default", None) is not None:
+                        data[k] = field.default
+                    elif getattr(getattr(field, "type_", None), "__origin__", None) in (list, List):
+                        data[k] = []
+                    elif getattr(getattr(field, "type_", None), "__origin__", None) in (dict, Dict):
+                        data[k] = {}
         if hasattr(self.schema, "parse_obj"):
             return self.schema.parse_obj(data)
         return self.schema.model_validate(data)

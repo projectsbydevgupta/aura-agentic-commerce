@@ -52,14 +52,15 @@ class ContextEvaluation(BaseModel):
     clarification_question: Optional[str] = Field(
         None, description="1 concise follow-up question if information is missing."
     )
-    clarification_options: List[str] = Field(
+    clarification_options: Optional[List[str]] = Field(
         default_factory=list,
         description="2-3 concise dynamic clarification answer options (in INR ₹) tailored specifically to the missing context and product item (e.g. for shirt: ['Men\\'s formal shirts under ₹2,500', 'Women\\'s casual shirts under ₹2,000', 'Men\\'s linen casual shirts under ₹3,000']; for shoes: ['Men\\'s formal shoes under ₹5,000', 'Women\\'s casual sneakers under ₹4,000', 'Men\\'s running shoes under ₹3,000'])"
     )
-    final_search_query: str = Field(
+    final_search_query: Optional[str] = Field(
+        None,
         description="Refined search query string incorporating full dialogue context."
     )
-    inferred_filters: Dict[str, Any] = Field(
+    inferred_filters: Optional[Dict[str, Any]] = Field(
         default_factory=dict,
         description="Structured MongoDB filters."
     )
@@ -70,14 +71,15 @@ class ValidationDecision(BaseModel):
     validated: bool = Field(
         description="True if products satisfy requirements; False otherwise."
     )
-    explanation: str = Field(
-        description="Short rationale of validation decision."
+    explanation: Optional[str] = Field(
+        "", description="Short rationale of validation decision."
     )
     rewritten_query: Optional[str] = Field(
         None, description="Rewritten search query if validation failed."
     )
     adjusted_filters: Optional[Dict[str, Any]] = Field(
-        None, description="Adjusted metadata filters if validation failed."
+        default_factory=dict,
+        description="Adjusted metadata filters if validation failed."
     )
 
 

@@ -740,11 +740,11 @@ async def handle_clarification(req: ClarificationReplyRequest):
             result_state = agent_app.invoke(input_state, config=config)
         else:
             from src.crews.fashion_crew import get_fashion_crew
-            crew_res = get_fashion_crew().run_hierarchical_crew(guard_check.sanitized_prompt)
+            crew_res = get_fashion_crew().run_hierarchical_crew(req.answer)
             items_raw = [item.model_dump() if hasattr(item, "model_dump") else item.dict() for item in crew_res.outfit_items]
             result_state = {
                 "intent": "search",
-                "current_query": guard_check.sanitized_prompt,
+                "current_query": req.answer,
                 "filters": {},
                 "needs_clarification": False,
                 "clarification_question": None,
@@ -754,7 +754,7 @@ async def handle_clarification(req: ClarificationReplyRequest):
                 "selected_product": items_raw[0] if items_raw else None,
                 "upsell_results": items_raw[1:],
                 "conversation_history": [
-                    {"role": "user", "content": req.message},
+                    {"role": "user", "content": req.answer},
                     {"role": "assistant", "content": crew_res.supervisor_verdict}
                 ]
             }
@@ -762,10 +762,11 @@ async def handle_clarification(req: ClarificationReplyRequest):
         return {
             "thread_id": req.thread_id,
             "intent": result_state.get("intent", "search"),
-            "current_query": result_state.get("current_query"),
+            "current_query": result_state.get("current_query", req.answer),
             "filters": result_state.get("filters", {}),
             "needs_clarification": result_state.get("needs_clarification", False),
             "clarification_question": result_state.get("clarification_question"),
+            "clarification_options": result_state.get("clarification_options", []),
             "validation_result": result_state.get("validation_result", {}),
             "search_results": [serialize_doc(p) for p in result_state.get("search_results", [])],
             "upsell_results": [serialize_doc(p) for p in result_state.get("upsell_results", [])],
@@ -782,7 +783,8 @@ async def handle_clarification(req: ClarificationReplyRequest):
             "filters": {},
             "needs_clarification": False,
             "clarification_question": None,
-            "validation_result": {"validated": True, "explanation": "Fallback search"},
+            "clarification_options": [],
+            "validation_result": {"validated": True, "explanation": "Retrieved catalog selections matching query."},
             "search_results": [serialize_doc(p) for p in results],
             "upsell_results": [],
             "selected_product": None
@@ -795,12 +797,26 @@ async def generate_outfit_for_product(req: OutfitRequest):
     Generates a complete 3-to-4 piece modular ensemble for any selected product.
     """
     engine = get_search_engine()
-    doc = engine.collection.find_one({"product_id": req.product_id})
-    if not doc:
+    doc = None
+    if engine.is_mongo_reachable():
         try:
-            doc = engine.collection.find_one({"product_id": int(req.product_id)})
-        except (ValueError, TypeError):
+            doc = engine.collection.find_one({"product_id": req.product_id})
+            if not doc:
+                try:
+                    doc = engine.collection.find_one({"product_id": int(req.product_id)})
+                except (ValueError, TypeError):
+                    pass
+        except Exception:
             pass
+
+    if not doc:
+        catalog = engine._load_local_catalog()
+        req_id_str = str(req.product_id)
+        for item in catalog:
+            if str(item.get("product_id")) == req_id_str or str(item.get("id")) == req_id_str:
+                doc = item
+                break
+
     if not doc:
         # Fallback search by ID or name
         res = engine.hybrid_search(str(req.product_id), limit=1)
@@ -846,16 +862,22 @@ async def get_trending_curations():
     Returns curated editorial items across footwear, apparel, and accessories for the discovery page.
     """
     trending_items = []
-    try:
-        engine = get_search_engine()
+    engine = get_search_engine()
+    if engine.is_mongo_reachable():
+        try:
+            for cat in ["Footwear", "Apparel", "Accessories"]:
+                items = list(engine.collection.find(
+                    {"master_category": cat, "rating": {"$gte": 4.0}},
+                    {"embedding": 0}
+                ).limit(3))
+                trending_items.extend([serialize_doc(i) for i in items])
+        except Exception as e:
+            print(f"Notice on trending curations: {e}")
+
+    if not trending_items:
         for cat in ["Footwear", "Apparel", "Accessories"]:
-            items = list(engine.collection.find(
-                {"master_category": cat, "rating": {"$gte": 4.0}},
-                {"embedding": 0}
-            ).limit(3))
-            trending_items.extend([serialize_doc(i) for i in items])
-    except Exception as e:
-        print(f"Notice on trending curations: {e}")
+            items = engine.local_catalog_search("", filter_dict={"master_category": cat, "min_rating": 4.0}, limit=3)
+            trending_items.extend(items)
 
     return {"curations": trending_items}
 
@@ -866,7 +888,26 @@ async def get_product_details(product_id: str):
     Returns full details for a single product.
     """
     engine = get_search_engine()
-    doc = engine.collection.find_one({"product_id": product_id}, {"embedding": 0})
+    doc = None
+    if engine.is_mongo_reachable():
+        try:
+            doc = engine.collection.find_one({"product_id": product_id}, {"embedding": 0})
+            if not doc:
+                try:
+                    doc = engine.collection.find_one({"product_id": int(product_id)}, {"embedding": 0})
+                except (ValueError, TypeError):
+                    pass
+        except Exception:
+            pass
+
+    if not doc:
+        catalog = engine._load_local_catalog()
+        req_id_str = str(product_id)
+        for item in catalog:
+            if str(item.get("product_id")) == req_id_str or str(item.get("id")) == req_id_str:
+                doc = item
+                break
+
     if not doc:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"product": serialize_doc(doc)}

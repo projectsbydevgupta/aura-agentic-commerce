@@ -421,17 +421,33 @@ body {
   }
 }
 
+.step-row.pending {
+  background: transparent;
+  color: var(--text-muted);
+  border-left: 3px solid transparent;
+  opacity: 0.55;
+}
+
+.step-row.pending .step-badge {
+  background: var(--bg-surface-dim);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
 .step-row.active {
-  background: rgba(184, 122, 68, 0.06);
+  background: rgba(184, 122, 68, 0.08);
   border-left: 3px solid var(--accent-amber);
   color: var(--text-primary);
   font-weight: 500;
+  opacity: 1;
+  transform: translateX(2px);
 }
 
 .step-row.done {
-  background: transparent;
+  background: rgba(34, 197, 94, 0.03);
   color: var(--text-secondary);
-  border-left: 3px solid transparent;
+  border-left: 3px solid rgba(34, 197, 94, 0.5);
+  opacity: 0.92;
 }
 
 .step-badge {

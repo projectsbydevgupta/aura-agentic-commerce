@@ -68,7 +68,18 @@ Evaluation Principles:
 """
     llm = get_llm(temperature=0.1, agent_name="context")
     structured_llm = llm.with_structured_output(ContextEvaluation)
-    eval_result: ContextEvaluation = structured_llm.invoke(prompt)
+    try:
+        eval_result: ContextEvaluation = structured_llm.invoke(prompt)
+    except Exception as e:
+        print(f"Context evaluation notice: {e}")
+        has_ctx = bool(filters or len(current_query.split()) >= 3)
+        eval_result = ContextEvaluation(
+            has_sufficient_context=has_ctx,
+            clarification_question=None if has_ctx else "Could you share your preferred style, occasion, or budget for this piece?",
+            clarification_options=[] if has_ctx else [f"Men's casual under ₹3,000", f"Women's casual under ₹2,500"],
+            final_search_query=current_query,
+            inferred_filters=filters
+        )
 
     updated_history = list(history)
 
