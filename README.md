@@ -13,9 +13,9 @@
 
 ---
 
-## 🏆 Final Project Evaluation — Mandatory Criteria Compliance Matrix
+## 🏛️ Multi-Agent System (MAS) Architectural Capabilities Matrix
 
-AURA strictly satisfies **all 10 mandatory evaluation criteria** defined for the Agentic AI (CSE3101) capstone:
+AURA implements and benchmarks the following 10 multi-agent system engineering capabilities:
 
 | # | Evaluation Criterion | Implementation Details | Core Source Files | Verification Status |
 |:---:|:---|:---|:---|:---:|
@@ -201,10 +201,10 @@ uvicorn server:app --host 127.0.0.1 --port 8000 --reload
 
 ---
 
-## 👥 Authors & Academic Attribution
+## 📦 Project Overview & Architecture Stack
 
-- **Course**: CSE3101: Agentic AI (Semester 7)
-- **Project Title**: AURA — AI-Native Luxury Fashion Concierge & Agentic Commerce Protocol
+- **Project**: AURA — AI-Native Luxury Fashion Concierge & Agentic Commerce Protocol
 - **Repository**: [github.com/projectsbydevgupta/aura-agentic-commerce](https://github.com/projectsbydevgupta/aura-agentic-commerce)
 - **Deployment**: Render Cloud (Python 3.11.9, Containerized Web Service)
-- **Tech Stack**: Python 3.11.9, FastAPI, LangGraph, CrewAI, Google ADK, MongoDB Atlas, Groq Cloud, Voyage AI.
+- **Core Architecture**: CrewAI, Google ADK, LangGraph, MCP Protocol, MongoDB Atlas Vector Search, Groq Cloud, Voyage AI
+- **License**: MIT
