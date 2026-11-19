@@ -321,11 +321,256 @@ def generate_merge_comparison_svg(json_path: str = "data/merge_test_results.json
     print(f"✓ Generated Merge Agents Bar Chart at: {output_path}")
 
 
+def generate_architecture_diagram_svg(output_path: str = "docs/mas_architecture_diagram.svg"):
+    """
+    Generates End-to-End MAS Architecture Diagram (Slide 4).
+    16:9 widescreen layout (960x540) showing Guardrails, LangGraph StateGraph,
+    MCP Tool Layer, CrewAI Merchant Concierge, and Google ADK Buyer Agent.
+    """
+    width, height = 960, 540
+    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" style="background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;">']
+    
+    # Title & Subtitle
+    svg.append('<text x="480" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">AURA Multi-Agent System (MAS) End-to-End Architecture</text>')
+    svg.append('<text x="480" y="52" text-anchor="middle" font-size="11" fill="#64748b">Criterion 4 &amp; 7: Hybrid Orchestration (Sequential StateGraph + Hierarchical CrewAI + Google ADK + MCP)</text>')
+
+    # 1. ENTRY LAYER (Left)
+    svg.append('<rect x="30" y="80" width="160" height="420" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>')
+    svg.append('<text x="110" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#334155">1 · CLIENT &amp; ENTRY</text>')
+    
+    svg.append('<rect x="45" y="125" width="130" height="70" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>')
+    svg.append('<text x="110" y="150" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">Shopper UI</text>')
+    svg.append('<text x="110" y="168" text-anchor="middle" font-size="9" fill="#3b82f6">Progressive Pipeline</text>')
+    svg.append('<text x="110" y="182" text-anchor="middle" font-size="8.5" fill="#64748b">HITL Suggestion Pills</text>')
+
+    svg.append('<rect x="45" y="220" width="130" height="85" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>')
+    svg.append('<text x="110" y="245" text-anchor="middle" font-size="11" font-weight="bold" fill="#15803d">Google ADK Buyer</text>')
+    svg.append('<text x="110" y="263" text-anchor="middle" font-size="9" fill="#16a34a">Autonomous Agent</text>')
+    svg.append('<text x="110" y="278" text-anchor="middle" font-size="8.5" fill="#64748b">A2A Envelope Dispatch</text>')
+    svg.append('<text x="110" y="292" text-anchor="middle" font-size="8.5" fill="#dc2626">Hard Spend Cap ($200)</text>')
+
+    svg.append('<rect x="45" y="330" width="130" height="65" rx="6" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>')
+    svg.append('<text x="110" y="355" text-anchor="middle" font-size="11" font-weight="bold" fill="#7e22ce">Campaign Agent</text>')
+    svg.append('<text x="110" y="373" text-anchor="middle" font-size="9" fill="#9333ea">Re-engagement</text>')
+    svg.append('<text x="110" y="387" text-anchor="middle" font-size="8.5" fill="#64748b">Cart Recovery Daemon</text>')
+
+    svg.append('<rect x="45" y="420" width="130" height="60" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>')
+    svg.append('<text x="110" y="445" text-anchor="middle" font-size="10" font-weight="bold" fill="#475569">REST &amp; WebSocket</text>')
+    svg.append('<text x="110" y="462" text-anchor="middle" font-size="8.5" fill="#64748b">FastAPI / Uvicorn</text>')
+
+    # 2. GUARDRAIL INTERCEPTOR (Center-Left)
+    svg.append('<rect x="215" y="80" width="130" height="420" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>')
+    svg.append('<text x="280" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#991b1b">2 · GUARDRAILS</text>')
+    
+    svg.append('<rect x="225" y="130" width="110" height="55" rx="5" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>')
+    svg.append('<text x="280" y="152" text-anchor="middle" font-size="10" font-weight="bold" fill="#b91c1c">Injection Filter</text>')
+    svg.append('<text x="280" y="168" text-anchor="middle" font-size="8.5" fill="#64748b">8 Pattern Families</text>')
+
+    svg.append('<rect x="225" y="200" width="110" height="55" rx="5" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>')
+    svg.append('<text x="280" y="222" text-anchor="middle" font-size="10" font-weight="bold" fill="#b91c1c">Toxicity Mask</text>')
+    svg.append('<text x="280" y="238" text-anchor="middle" font-size="8.5" fill="#64748b">Slang Allowed</text>')
+
+    svg.append('<rect x="225" y="270" width="110" height="55" rx="5" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>')
+    svg.append('<text x="280" y="292" text-anchor="middle" font-size="10" font-weight="bold" fill="#b91c1c">Spend Ceiling</text>')
+    svg.append('<text x="280" y="308" text-anchor="middle" font-size="8.5" fill="#64748b">Budget Protection</text>')
+
+    svg.append('<rect x="225" y="340" width="110" height="55" rx="5" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>')
+    svg.append('<text x="280" y="362" text-anchor="middle" font-size="10" font-weight="bold" fill="#b91c1c">Tool Validator</text>')
+    svg.append('<text x="280" y="378" text-anchor="middle" font-size="8.5" fill="#64748b">Schema Sanitizer</text>')
+
+    svg.append('<rect x="225" y="420" width="110" height="60" rx="5" fill="#ffffff" stroke="#10b981" stroke-width="1.5"/>')
+    svg.append('<text x="280" y="443" text-anchor="middle" font-size="11" font-weight="bold" fill="#047857">60/60 Blocked</text>')
+    svg.append('<text x="280" y="460" text-anchor="middle" font-size="8.5" fill="#059669">Zero False Blocks</text>')
+
+    # 3. LANGGRAPH COGNITIVE PIPELINE (Center)
+    svg.append('<rect x="370" y="80" width="350" height="420" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>')
+    svg.append('<text x="545" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#334155">3 · COGNITIVE AGENT PIPELINE (LangGraph + CrewAI)</text>')
+
+    # Step 1: Query Agent
+    svg.append('<rect x="385" y="125" width="320" height="55" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>')
+    svg.append('<text x="400" y="148" font-size="11" font-weight="bold" fill="#1e40af">Step 1 · Query Agent (Groq / gpt-oss-120b · T 0.0)</text>')
+    svg.append('<text x="400" y="165" font-size="9" fill="#475569">Extracts intent, article type, gender, base color, and budget ceilings into Pydantic QueryAnalysis</text>')
+
+    # Step 2: Context Agent
+    svg.append('<rect x="385" y="195" width="320" height="55" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>')
+    svg.append('<text x="400" y="218" font-size="11" font-weight="bold" fill="#b45309">Step 2 · Context Clarifier (HITL Gate · T 0.1)</text>')
+    svg.append('<text x="400" y="235" font-size="9" fill="#475569">Sufficiency assessment: halts on vague inputs (&quot;shoes&quot;) and generates dynamic category suggestion pills</text>')
+
+    # Step 3: Search Node
+    svg.append('<rect x="385" y="265" width="320" height="55" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>')
+    svg.append('<text x="400" y="288" font-size="11" font-weight="bold" fill="#047857">Step 3 · Hybrid Search Node (MCP Tool · Voyage AI + Atlas)</text>')
+    svg.append('<text x="400" y="305" font-size="9" fill="#475569">512-dim dense embeddings + exact lexical scalar pre-filtering over 44,424 luxury products</text>')
+
+    # Step 4: Validation Critic
+    svg.append('<rect x="385" y="335" width="320" height="65" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>')
+    svg.append('<text x="400" y="358" font-size="11" font-weight="bold" fill="#b91c1c">Step 4 · Validation Critic Gate (Adversarial QA · T 0.1)</text>')
+    svg.append('<text x="400" y="375" font-size="9" fill="#475569">Audits budget compliance &amp; domain relevance. On failure: triggers self-correction loop (max 2 retries)</text>')
+    svg.append('<text x="400" y="390" font-size="8.5" font-weight="bold" fill="#dc2626">&#8635; Self-Correction Feedback Loop rewires Search query</text>')
+
+    # Step 5: Fashion Stylist (CrewAI Concierge)
+    svg.append('<rect x="385" y="415" width="320" height="70" rx="6" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5"/>')
+    svg.append('<text x="400" y="438" font-size="11" font-weight="bold" fill="#7e22ce">Step 5 · Fashion Stylist (CrewAI Concierge · T 0.7)</text>')
+    svg.append('<text x="400" y="455" font-size="9" fill="#475569">Supervisor delegates to Scout &amp; QA workers; applies Chain-of-Thought (CoT) to curate full outfits</text>')
+    svg.append('<text x="400" y="470" font-size="8.5" fill="#6b21a8">Cross-Framework A2A negotiation with Google ADK buyer for programmatic checkout</text>')
+
+    # 4. TOOLS, MCP & OBSERVABILITY (Right)
+    svg.append('<rect x="745" y="80" width="185" height="420" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>')
+    svg.append('<text x="837" y="105" text-anchor="middle" font-size="12" font-weight="bold" fill="#334155">4 · MCP &amp; DATA LAYER</text>')
+
+    svg.append('<rect x="755" y="125" width="165" height="90" rx="6" fill="#ffffff" stroke="#6366f1" stroke-width="1.5"/>')
+    svg.append('<text x="837" y="148" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#4338ca">FastMCP Tool Server</text>')
+    svg.append('<text x="837" y="165" text-anchor="middle" font-size="9" font-weight="600" fill="#0f172a">&#8226; catalog_hybrid_search</text>')
+    svg.append('<text x="837" y="180" text-anchor="middle" font-size="9" font-weight="600" fill="#0f172a">&#8226; financial_fx_calculator</text>')
+    svg.append('<text x="837" y="198" text-anchor="middle" font-size="8" fill="#64748b">Hosted at /.well-known/mcp.json</text>')
+
+    svg.append('<rect x="755" y="230" width="165" height="80" rx="6" fill="#ffffff" stroke="#10b981" stroke-width="1.5"/>')
+    svg.append('<text x="837" y="253" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#047857">MongoDB Atlas Cloud</text>')
+    svg.append('<text x="837" y="270" text-anchor="middle" font-size="9" fill="#0f172a">44,424 Luxury Items</text>')
+    svg.append('<text x="837" y="285" text-anchor="middle" font-size="8.5" fill="#64748b">Voyage AI 512-dim Dense Index</text>')
+    svg.append('<text x="837" y="300" text-anchor="middle" font-size="8" fill="#15803d">&#10003; In-Memory Offline Fail-Safe</text>')
+
+    svg.append('<rect x="755" y="325" width="165" height="80" rx="6" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.5"/>')
+    svg.append('<text x="837" y="348" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#0369a1">Blackboard Shared State</text>')
+    svg.append('<text x="837" y="365" text-anchor="middle" font-size="9" fill="#0f172a">7 Thread-Scoped Sections</text>')
+    svg.append('<text x="837" y="380" text-anchor="middle" font-size="8.5" fill="#64748b">Arbiter &amp; Async Event Bus</text>')
+    svg.append('<text x="837" y="395" text-anchor="middle" font-size="8" fill="#475569">Decoupled Knowledge Sources</text>')
+
+    svg.append('<rect x="755" y="420" width="165" height="65" rx="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>')
+    svg.append('<text x="837" y="443" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#b45309">Observability &amp; Tracing</text>')
+    svg.append('<text x="837" y="458" text-anchor="middle" font-size="8.5" fill="#0f172a">Arize Phoenix OpenTelemetry</text>')
+    svg.append('<text x="837" y="472" text-anchor="middle" font-size="8" fill="#64748b">2D MAS Heatmap &amp; JSONL Logs</text>')
+
+    # Connective arrows
+    svg.append('<line x1="190" y1="160" x2="215" y2="160" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow)"/>')
+    svg.append('<line x1="345" y1="160" x2="370" y2="160" stroke="#10b981" stroke-width="2"/>')
+    svg.append('<line x1="705" y1="290" x2="745" y2="170" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="4,3"/>')
+    svg.append('<line x1="705" y1="450" x2="745" y2="365" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="4,3"/>')
+
+    # Footer note
+    svg.append('<text x="480" y="525" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">All components fully deployed in production on Render Cloud (https://aura-agentic-commerce.onrender.com) &#183; Zero Local Machine Dependencies</text>')
+
+    svg.append('</svg>')
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(svg))
+    print(f"✓ Generated MAS Architecture Diagram at: {output_path}")
+
+
+def generate_messaging_a2a_svg(output_path: str = "docs/messaging_patterns_a2a.svg"):
+    """
+    Generates Messaging Pattern and A2A Communication Diagram (Slide 7).
+    16:9 widescreen layout (960x540) showing Blackboard Shared State on the left
+    and Google ADK <-> CrewAI A2A Message Envelope Exchange on the right.
+    """
+    width, height = 960, 540
+    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" style="background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;">']
+    
+    # Title & Subtitle
+    svg.append('<text x="480" y="32" text-anchor="middle" font-size="18" font-weight="bold" fill="#0f172a">AURA Messaging Patterns: Blackboard Shared State &amp; A2A Protocol</text>')
+    svg.append('<text x="480" y="52" text-anchor="middle" font-size="11" fill="#64748b">Criterion 1 (Blackboard Architecture) &amp; Criterion 6 (Cross-Framework A2A Interoperability)</text>')
+
+    # LEFT PANEL: BLACKBOARD SHARED STATE (Criterion 1)
+    svg.append('<rect x="30" y="80" width="435" height="420" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>')
+    svg.append('<text x="247" y="105" text-anchor="middle" font-size="13" font-weight="bold" fill="#0369a1">BLACKBOARD ARCHITECTURE (Shared State &amp; Event Bus)</text>')
+    svg.append('<text x="247" y="122" text-anchor="middle" font-size="9.5" fill="#64748b">src/blackboard/blackboard.py &#183; Decoupled Knowledge Sources &#183; Zero P2P Coupling</text>')
+
+    # Blackboard State Structure (7 Scoped Sections)
+    svg.append('<rect x="50" y="140" width="220" height="260" rx="6" fill="#ffffff" stroke="#0ea5e9" stroke-width="1.5"/>')
+    svg.append('<text x="160" y="162" text-anchor="middle" font-size="11" font-weight="bold" fill="#0284c7">Shared BlackboardState</text>')
+    sections = [
+        "1. query (cleaned, price-stripped)",
+        "2. budget (INR &amp; USD normalized)",
+        "3. filters (gender, category, brand)",
+        "4. candidates (top-k search items)",
+        "5. styling_notes (CoT outfit pairing)",
+        "6. event_log (timestamped audits)",
+        "7. consensus_flag (decision reached)"
+    ]
+    for idx, sec in enumerate(sections):
+        sy = 185 + idx * 28
+        svg.append(f'<rect x="60" y="{sy-14}" width="200" height="22" rx="3" fill="#f0f9ff" stroke="#bae6fd"/>')
+        svg.append(f'<text x="70" y="{sy}" font-size="9" font-family="monospace" fill="#0369a1">{sec}</text>')
+
+    # Arbiter & Knowledge Sources
+    svg.append('<rect x="290" y="140" width="155" height="55" rx="5" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>')
+    svg.append('<text x="367" y="162" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#1e40af">BlackboardArbiter</text>')
+    svg.append('<text x="367" y="178" text-anchor="middle" font-size="8.5" fill="#3b82f6">Event Loop &amp; Consensus</text>')
+
+    ks_list = [
+        ("KS_Query", "Extracts user parameters", "#3b82f6"),
+        ("KS_Search", "Retrieves candidate items", "#10b981"),
+        ("KS_Stylist", "Curates complete outfit", "#a855f7")
+    ]
+    for idx, (ks_name, ks_desc, ks_col) in enumerate(ks_list):
+        ky = 220 + idx * 60
+        svg.append(f'<rect x="290" y="{ky}" width="155" height="48" rx="5" fill="#ffffff" stroke="{ks_col}" stroke-width="1.2"/>')
+        svg.append(f'<text x="300" y="{ky+18}" font-size="10" font-weight="bold" fill="{ks_col}">{ks_name}</text>')
+        svg.append(f'<text x="300" y="{ky+34}" font-size="8" fill="#64748b">{ks_desc}</text>')
+        # Arrow connecting KS to Blackboard
+        svg.append(f'<line x1="270" y1="{ky+24}" x2="290" y2="{ky+24}" stroke="{ks_col}" stroke-width="1.5" stroke-dasharray="3,2"/>')
+
+    svg.append('<rect x="50" y="420" width="395" height="60" rx="5" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>')
+    svg.append('<text x="247" y="443" text-anchor="middle" font-size="10" font-weight="bold" fill="#15803d">&#10003; Provenance &amp; Isolation</text>')
+    svg.append('<text x="247" y="460" text-anchor="middle" font-size="8.5" fill="#166534">Every read/write mutation is logged with step_id and timestamp. Agents cannot access unapproved sections.</text>')
+
+    # RIGHT PANEL: AGENT-TO-AGENT (A2A) PROTOCOL (Criterion 6 & 7)
+    svg.append('<rect x="495" y="80" width="435" height="420" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>')
+    svg.append('<text x="712" y="105" text-anchor="middle" font-size="13" font-weight="bold" fill="#15803d">CROSS-FRAMEWORK A2A PROTOCOL</text>')
+    svg.append('<text x="712" y="122" text-anchor="middle" font-size="9.5" fill="#64748b">src/protocol/a2a_channel.py &#183; Google ADK (Buyer) &#8596; CrewAI (Merchant)</text>')
+
+    # Google ADK Buyer Node
+    svg.append('<rect x="515" y="145" width="170" height="95" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>')
+    svg.append('<text x="600" y="170" text-anchor="middle" font-size="11" font-weight="bold" fill="#15803d">Google ADK Buyer</text>')
+    svg.append('<text x="600" y="188" text-anchor="middle" font-size="9" fill="#166534">Framework: Google ADK</text>')
+    svg.append('<text x="600" y="204" text-anchor="middle" font-size="8.5" fill="#475569">ID: ADK_Autonomous_Buyer_007</text>')
+    svg.append('<text x="600" y="220" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#dc2626">Hard Budget Cap: $200.00</text>')
+
+    # CrewAI Merchant Node
+    svg.append('<rect x="740" y="145" width="170" height="95" rx="6" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>')
+    svg.append('<text x="825" y="170" text-anchor="middle" font-size="11" font-weight="bold" fill="#7e22ce">CrewAI Merchant Concierge</text>')
+    svg.append('<text x="825" y="188" text-anchor="middle" font-size="9" fill="#6b21a8">Framework: CrewAI</text>')
+    svg.append('<text x="825" y="204" text-anchor="middle" font-size="8.5" fill="#475569">ID: CrewAI_Fashion_Concierge_001</text>')
+    svg.append('<text x="825" y="220" text-anchor="middle" font-size="8.5" fill="#0f172a">Voucher Applied: AURA20 (-20%)</text>')
+
+    # A2A Request Envelope Box
+    svg.append('<rect x="535" y="260" width="355" height="100" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.2"/>')
+    svg.append('<text x="712" y="280" text-anchor="middle" font-size="10" font-weight="bold" fill="#0f172a">A2AMessageEnvelope (JSON-RPC 2.0 Payload)</text>')
+    json_lines = [
+        '&#123; "sender_framework": "Google-ADK", "receiver_framework": "CrewAI",',
+        '  "intent": "autonomous_procurement", "promo_code": "AURA20",',
+        '  "budget_ceiling_usd": 200.00, "currency": "USD",',
+        '  "items": [&#123; "id": "PUM-77", "qty": 1, "price_usd": 78.50 &#125;] &#125;'
+    ]
+    for idx, jl in enumerate(json_lines):
+        svg.append(f'<text x="548" y="{300 + idx*15}" font-size="8.5" font-family="monospace" fill="#334155">{jl}</text>')
+
+    # Response Envelope Box
+    svg.append('<rect x="535" y="380" width="355" height="100" rx="6" fill="#ffffff" stroke="#16a34a" stroke-width="1.2"/>')
+    svg.append('<text x="712" y="400" text-anchor="middle" font-size="10" font-weight="bold" fill="#15803d">&#8592; A2AResponseEnvelope (HTTP 200 OK)</text>')
+    resp_lines = [
+        '&#123; "order_id": "A2A-ADK-7F9B1E", "status": "CONFIRMED_PAID",',
+        '  "original_total": 78.50, "discount": 15.70, "net_price": 62.80,',
+        '  "ceiling_verified": true, "tax_gst_inr": 628.00,',
+        '  "audit_notes": "Executed via official Google-ADK &amp; CrewAI" &#125;'
+    ]
+    for idx, rl in enumerate(resp_lines):
+        svg.append(f'<text x="548" y="{420 + idx*15}" font-size="8.5" font-family="monospace" fill="#166534">{rl}</text>')
+
+    # Footer note
+    svg.append('<text x="480" y="525" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">Verified via Pytest: tests/test_blackboard_and_messaging.py (C1) and tests/test_crewai_adk_interop.py (C6 &amp; C7)</text>')
+
+    svg.append('</svg>')
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(svg))
+    print(f"✓ Generated Messaging & A2A Diagram at: {output_path}")
+
+
 def main():
     os.makedirs("docs", exist_ok=True)
     generate_mas_heatmap_svg("docs/mas_heatmap.svg")
     generate_boxplot_svg("data/evaluation_runs.csv", "docs/evaluation_boxplot_latency.svg")
     generate_merge_comparison_svg("data/merge_test_results.json", "docs/merge_agents_comparison.svg")
+    generate_architecture_diagram_svg("docs/mas_architecture_diagram.svg")
+    generate_messaging_a2a_svg("docs/messaging_patterns_a2a.svg")
 
 
 if __name__ == "__main__":
