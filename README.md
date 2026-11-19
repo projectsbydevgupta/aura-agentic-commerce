@@ -17,7 +17,7 @@
 
 ## 🏆 Final Project Evaluation — Mandatory Criteria Compliance Matrix
 
-AURA strictly satisfies **all 10 mandatory evaluation criteria** for the Agentic AI (CSE3101) capstone:
+AURA strictly satisfies **all 10 mandatory evaluation criteria** defined for the Agentic AI (CSE3101) capstone:
 
 | # | Evaluation Criterion | Implementation Details | Core Source Files | Verification Status |
 |:---:|:---|:---|:---|:---:|
@@ -96,6 +96,21 @@ User Query / Client Request
 
 ---
 
+## 🛡️ Ethical AI, Responsible Agentic Design & Safety Guardrails
+
+In autonomous and multi-agent systems, engineering ethics and defensive boundaries are fundamental. AURA integrates four core ethical principles:
+
+1. **Autonomous Financial Safety & Spend Ceilings**:
+   Autonomous buyer agents operate strictly within human-specified spend ceilings (enforced deterministically in `src/security/guardrails.py`). The agent cannot execute checkout if the total exceeds the budget boundary, mitigating runaway purchasing behavior.
+2. **Adversarial Input & Prompt Injection Immunity**:
+   Adversarial prompts attempting system prompt extraction, rule overrides, or malicious redirection are intercepted at the perimeter before propagating to internal agent states.
+3. **Anti-Toxicity & Respectful De-escalation**:
+   User prompts with abusive, derogatory, or hostile sentiment (e.g., adversarial consumer personas) trigger respectful de-escalation responses without degrading service quality or compromising system integrity.
+4. **Data Privacy & Ephemeral State**:
+   User interactions and preferences are bound to session threads (`thread_id`) without permanent tracking or selling of personal identifiable information (PII). Payments utilize sandbox tokenization via Razorpay Test mode.
+
+---
+
 ## 🖥️ Real-Time Progressive Frontend Pipeline
 
 When a user submits an inquiry or clicks a suggestion, the frontend reveals the multi-agent pipeline in real-time with smooth state transitions:
@@ -108,7 +123,7 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 
 ---
 
-## 🌐 Live Service Endpoints & Discovery
+## 🌐 Live Service Endpoints & One-Click Verification
 
 | Service / Interface | Protocol | Public Production URL | Description |
 | :--- | :---: | :--- | :--- |
@@ -119,6 +134,20 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 | 🔌 **MCP Tool Declarations** | HTTPS | [`/.well-known/mcp.json`](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | Model Context Protocol declarations for external LLM tool consumers |
 | 📜 **A2A Protocol Discovery** | HTTPS | [`/.well-known/agent-protocol.json`](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | AP2 Agent Discovery Manifest for autonomous AI shoppers |
 | 📖 **Interactive OpenAPI Docs** | HTTPS | [`https://aura-agentic-commerce.onrender.com/docs`](https://aura-agentic-commerce.onrender.com/docs) | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
+
+### One-Click Cloud Verification (Terminal / cURL)
+Evaluators can directly test the live system without setting up local tools:
+
+```bash
+# 1. Health check & database connection probe
+curl -X GET https://aura-agentic-commerce.onrender.com/health
+
+# 2. Inspect Model Context Protocol (MCP) tool catalog
+curl -X GET https://aura-agentic-commerce.onrender.com/.well-known/mcp.json
+
+# 3. Test Agent-to-Agent (A2A) discovery manifest
+curl -X GET https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json
+```
 
 ---
 
@@ -137,6 +166,15 @@ Statistical visualizations are saved in [`docs/`](docs/):
 - `docs/mas_heatmap.svg`: 2D agent performance and token usage matrix.
 - `docs/evaluation_boxplot_latency.svg`: Latency distribution across agentic architectures.
 - `docs/merge_agents_comparison.svg`: Empirical study validating why decoupled multi-agent architectures outperform monolithic LLMs.
+
+---
+
+## 🔄 Graceful Degradation & High-Availability Architecture
+
+A senior engineering priority in production AI systems is resilience against third-party service degradation:
+- **Distributed Groq Key Pool**: Agent queries cycle across distinct API keys to prevent rate limiting (`429 Too Many Requests`).
+- **Zero-Downtime Catalog Fallback**: If MongoDB Atlas undergoes cloud maintenance or IP restrictions, the search subsystem automatically falls back to an in-memory lexical and dense index (`44,424 items`), guaranteeing continuous uptime during demonstrations.
+- **Fail-Safe Framework Fallbacks**: If external agent framework packages experience remote gateway timeouts, the internal typed orchestration bridges seamlessly handle execution without crashing the user session.
 
 ---
 
@@ -164,7 +202,8 @@ uvicorn server:app --host 127.0.0.1 --port 8000 --reload
 
 ## 👥 Authors & Academic Attribution
 
-- **Course**: CSE3101 Agentic AI (Semester 7)
-- **Project**: AURA — AI-Native Luxury Fashion Concierge & Agentic Commerce Protocol
+- **Course**: CSE3101: Agentic AI (Semester 7)
+- **Project Title**: AURA — AI-Native Luxury Fashion Concierge & Agentic Commerce Protocol
 - **Repository**: [https://github.com/projectsbydevgupta/aura-agentic-commerce](https://github.com/projectsbydevgupta/aura-agentic-commerce)
-- **Deployment**: Render Cloud (Python 3.11.9, MongoDB Atlas, Groq Cloud, Voyage AI)
+- **Live Deployment**: Render Cloud ([https://aura-agentic-commerce.onrender.com](https://aura-agentic-commerce.onrender.com))
+- **Tech Stack**: Python 3.11.9, FastAPI, LangGraph, CrewAI, Google ADK, MongoDB Atlas, Groq Cloud, Voyage AI.
