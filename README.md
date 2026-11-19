@@ -121,33 +121,29 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 
 ---
 
-## 🌐 System Routes & Live Endpoints
+## 🌐 Live Deployments & Protocol Discovery Links
 
-Base URL: [`https://aura-agentic-commerce.onrender.com`](https://aura-agentic-commerce.onrender.com)
-
-| Route | Method | Component | Purpose |
+| Service / Interface | Method | Live Full URL | Description |
 | :--- | :---: | :--- | :--- |
-| [`/`](https://aura-agentic-commerce.onrender.com) | `GET` | Storefront Concierge | Conversational luxury fashion concierge & AI styling experience |
-| [`/evaluation`](https://aura-agentic-commerce.onrender.com/evaluation) | `GET` | MAS Evaluation Dashboard | 2D Agent latency/token heatmap & benchmark boxplots |
-| [`/admin`](https://aura-agentic-commerce.onrender.com/admin) | `GET` | Atelier Admin | Real-time order telemetry, user management, and machine analytics |
-| [`/health`](https://aura-agentic-commerce.onrender.com/health) | `GET` | Health Probe | Uptime monitoring and MongoDB Atlas database connection health |
-| [`/.well-known/mcp.json`](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | `GET` | MCP Tool Manifest | Model Context Protocol declarations for external tool consumers |
-| [`/.well-known/agent-protocol.json`](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | `GET` | A2A Discovery Manifest | AP2 Agent Discovery Manifest for autonomous AI shoppers |
-| [`/docs`](https://aura-agentic-commerce.onrender.com/docs) | `GET` | OpenAPI Docs | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
+| 🛍️ **Storefront Concierge** | `GET` | [https://aura-agentic-commerce.onrender.com](https://aura-agentic-commerce.onrender.com) | Conversational luxury fashion concierge & AI styling experience |
+| 📊 **MAS Evaluation Dashboard** | `GET` | [https://aura-agentic-commerce.onrender.com/evaluation](https://aura-agentic-commerce.onrender.com/evaluation) | 2D Agent latency/token heatmap & statistical benchmark boxplots |
+| 📈 **Executive Atelier Admin** | `GET` | [https://aura-agentic-commerce.onrender.com/admin](https://aura-agentic-commerce.onrender.com/admin) | Real-time order telemetry, user management, and machine analytics |
+| 💓 **Health Check Probe** | `GET` | [https://aura-agentic-commerce.onrender.com/health](https://aura-agentic-commerce.onrender.com/health) | Uptime monitoring and MongoDB Atlas database connection health |
+| 🔌 **MCP Tool Declarations** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/mcp.json](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | Model Context Protocol declarations for external LLM tool consumers |
+| 📜 **A2A Protocol Discovery** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | AP2 Agent Discovery Manifest for autonomous AI shoppers |
+| 📖 **Interactive OpenAPI Docs** | `GET` | [https://aura-agentic-commerce.onrender.com/docs](https://aura-agentic-commerce.onrender.com/docs) | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
 
 ### Evaluator Verification via cURL
 
 ```bash
-BASE="https://aura-agentic-commerce.onrender.com"
-
-# Health & database probe
-curl -s "${BASE}/health"
+# Health check & database probe
+curl -s "https://aura-agentic-commerce.onrender.com/health"
 
 # Model Context Protocol (MCP) tool schema
-curl -s "${BASE}/.well-known/mcp.json"
+curl -s "https://aura-agentic-commerce.onrender.com/.well-known/mcp.json"
 
 # Autonomous Agent-to-Agent (A2A) protocol manifest
-curl -s "${BASE}/.well-known/agent-protocol.json"
+curl -s "https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json"
 ```
 
 ---
