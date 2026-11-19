@@ -8,10 +8,8 @@
 [![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-4B0082?style=for-the-badge)](https://modelcontextprotocol.io/)
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas%20Vector%20Search-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 
-> **Live Production URL**: [https://aura-agentic-commerce.onrender.com](https://aura-agentic-commerce.onrender.com)  
-> **Evaluation Dashboard & 2D Heatmap**: [https://aura-agentic-commerce.onrender.com/evaluation](https://aura-agentic-commerce.onrender.com/evaluation)  
-> **Health Check Endpoint**: [https://aura-agentic-commerce.onrender.com/health](https://aura-agentic-commerce.onrender.com/health)  
-> **Interactive OpenAPI Docs**: [https://aura-agentic-commerce.onrender.com/docs](https://aura-agentic-commerce.onrender.com/docs)
+> **Live Deployment**: [aura-agentic-commerce.onrender.com](https://aura-agentic-commerce.onrender.com)  
+> An autonomous multi-agent conversational commerce system implementing **CrewAI**, **Google ADK**, **Blackboard Architecture**, **MCP Tool Calling**, and **Hybrid Vector Search** across 44,424 luxury fashion products.
 
 ---
 
@@ -123,30 +121,33 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 
 ---
 
-## 🌐 Live Service Endpoints & One-Click Verification
+## 🌐 System Routes & Live Endpoints
 
-| Service / Interface | Protocol | Public Production URL | Description |
+Base URL: [`https://aura-agentic-commerce.onrender.com`](https://aura-agentic-commerce.onrender.com)
+
+| Route | Method | Component | Purpose |
 | :--- | :---: | :--- | :--- |
-| 🛍️ **Storefront Concierge** | HTTPS | [`https://aura-agentic-commerce.onrender.com`](https://aura-agentic-commerce.onrender.com) | Conversational Luxury Fashion Concierge & AI Styling Experience |
-| 📊 **MAS Evaluation Dashboard** | HTTPS | [`https://aura-agentic-commerce.onrender.com/evaluation`](https://aura-agentic-commerce.onrender.com/evaluation) | 2D Agent Latency/Token Heatmap & Statistical Benchmark Boxplots |
-| 📈 **Executive Atelier Admin** | HTTPS | [`https://aura-agentic-commerce.onrender.com/admin`](https://aura-agentic-commerce.onrender.com/admin) | Real-time order telemetry, user management, and A2A machine analytics |
-| 💓 **Health Check Probe** | HTTPS | [`https://aura-agentic-commerce.onrender.com/health`](https://aura-agentic-commerce.onrender.com/health) | Uptime monitoring and MongoDB Atlas database connection health |
-| 🔌 **MCP Tool Declarations** | HTTPS | [`/.well-known/mcp.json`](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | Model Context Protocol declarations for external LLM tool consumers |
-| 📜 **A2A Protocol Discovery** | HTTPS | [`/.well-known/agent-protocol.json`](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | AP2 Agent Discovery Manifest for autonomous AI shoppers |
-| 📖 **Interactive OpenAPI Docs** | HTTPS | [`https://aura-agentic-commerce.onrender.com/docs`](https://aura-agentic-commerce.onrender.com/docs) | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
+| [`/`](https://aura-agentic-commerce.onrender.com) | `GET` | Storefront Concierge | Conversational luxury fashion concierge & AI styling experience |
+| [`/evaluation`](https://aura-agentic-commerce.onrender.com/evaluation) | `GET` | MAS Evaluation Dashboard | 2D Agent latency/token heatmap & benchmark boxplots |
+| [`/admin`](https://aura-agentic-commerce.onrender.com/admin) | `GET` | Atelier Admin | Real-time order telemetry, user management, and machine analytics |
+| [`/health`](https://aura-agentic-commerce.onrender.com/health) | `GET` | Health Probe | Uptime monitoring and MongoDB Atlas database connection health |
+| [`/.well-known/mcp.json`](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | `GET` | MCP Tool Manifest | Model Context Protocol declarations for external tool consumers |
+| [`/.well-known/agent-protocol.json`](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | `GET` | A2A Discovery Manifest | AP2 Agent Discovery Manifest for autonomous AI shoppers |
+| [`/docs`](https://aura-agentic-commerce.onrender.com/docs) | `GET` | OpenAPI Docs | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
 
-### One-Click Cloud Verification (Terminal / cURL)
-Evaluators can directly test the live system without setting up local tools:
+### Evaluator Verification via cURL
 
 ```bash
-# 1. Health check & database connection probe
-curl -X GET https://aura-agentic-commerce.onrender.com/health
+BASE="https://aura-agentic-commerce.onrender.com"
 
-# 2. Inspect Model Context Protocol (MCP) tool catalog
-curl -X GET https://aura-agentic-commerce.onrender.com/.well-known/mcp.json
+# Health & database probe
+curl -s "${BASE}/health"
 
-# 3. Test Agent-to-Agent (A2A) discovery manifest
-curl -X GET https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json
+# Model Context Protocol (MCP) tool schema
+curl -s "${BASE}/.well-known/mcp.json"
+
+# Autonomous Agent-to-Agent (A2A) protocol manifest
+curl -s "${BASE}/.well-known/agent-protocol.json"
 ```
 
 ---
@@ -162,7 +163,7 @@ AURA was evaluated across **120 measured benchmark runs** spanning 6 diverse use
 | **Cost per 1k Inquiries** | $1.42 | $2.84 | $1.18 |
 | **Guardrail Rejection Accuracy** | 99.2% | 98.8% | 99.1% |
 
-Statistical visualizations are saved in [`docs/`](docs/):
+Visualizations available in [`docs/`](docs/):
 - `docs/mas_heatmap.svg`: 2D agent performance and token usage matrix.
 - `docs/evaluation_boxplot_latency.svg`: Latency distribution across agentic architectures.
 - `docs/merge_agents_comparison.svg`: Empirical study validating why decoupled multi-agent architectures outperform monolithic LLMs.
@@ -204,6 +205,6 @@ uvicorn server:app --host 127.0.0.1 --port 8000 --reload
 
 - **Course**: CSE3101: Agentic AI (Semester 7)
 - **Project Title**: AURA — AI-Native Luxury Fashion Concierge & Agentic Commerce Protocol
-- **Repository**: [https://github.com/projectsbydevgupta/aura-agentic-commerce](https://github.com/projectsbydevgupta/aura-agentic-commerce)
-- **Live Deployment**: Render Cloud ([https://aura-agentic-commerce.onrender.com](https://aura-agentic-commerce.onrender.com))
+- **Repository**: [github.com/projectsbydevgupta/aura-agentic-commerce](https://github.com/projectsbydevgupta/aura-agentic-commerce)
+- **Deployment**: Render Cloud (Python 3.11.9, Containerized Web Service)
 - **Tech Stack**: Python 3.11.9, FastAPI, LangGraph, CrewAI, Google ADK, MongoDB Atlas, Groq Cloud, Voyage AI.
