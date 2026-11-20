@@ -83,11 +83,11 @@ class PhoenixTracer:
             })
             self.provider = TracerProvider(resource=resource)
 
-            # 1. Cloud Exporter (Arize Phoenix Cloud space - only when a live key is configured)
-            is_placeholder_key = "As3Yw3IgHqcJMtFM33" in (self.api_key or "") or not self.api_key
-            if self.endpoint and not is_placeholder_key:
+            # 1. Cloud Exporter (Arize Phoenix Cloud space)
+            if self.endpoint:
                 headers = {}
                 if self.api_key:
+                    headers["api_key"] = self.api_key
                     headers["Authorization"] = f"Bearer {self.api_key}"
                 try:
                     cloud_exporter = OTLPSpanExporter(
