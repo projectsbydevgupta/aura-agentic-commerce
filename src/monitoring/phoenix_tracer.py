@@ -50,16 +50,22 @@ class PhoenixTracer:
 
     def __init__(self):
         self.enabled = os.getenv("OBSERVABILITY_TRACING", "true").lower() in ("true", "1", "yes")
-        self.endpoint = os.getenv(
+        raw_endpoint = os.getenv(
             "PHOENIX_COLLECTOR_ENDPOINT",
             "https://app.phoenix.arize.com/s/aura-commerce/v1/traces"
-        )
+        ).strip().rstrip("/")
+        if raw_endpoint and not raw_endpoint.endswith("/v1/traces"):
+            self.endpoint = f"{raw_endpoint}/v1/traces"
+        else:
+            self.endpoint = raw_endpoint
+
         self.api_key = os.getenv(
             "PHOENIX_API_KEY",
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJBcGlLZXk6MiIsInBoeF9ybmQiOiJnNExoQkJpTEM4bWprU3I2eVlweUoxLUh4V2x1eXpULWVSYU9tS0VGMTMwIn0.wwincG8FBBbCqhuTucU7pwWTU8-D56sW8y4AAN2H5UU"
-        )
-        self.project_name = os.getenv("PHOENIX_PROJECT_NAME", "aura-commerce")
+        ).strip()
+        self.project_name = os.getenv("PHOENIX_PROJECT_NAME", "aura-commerce").strip()
         self.local_port = int(os.getenv("PHOENIX_LOCAL_PORT", "6006"))
+        self.enable_local = os.getenv("PHOENIX_ENABLE_LOCAL", "false").lower() in ("true", "1", "yes")
 
         self.tracer = None
         self.provider = None
@@ -93,19 +99,20 @@ class PhoenixTracer:
                     cloud_exporter = OTLPSpanExporter(
                         endpoint=self.endpoint,
                         headers=headers,
-                        timeout=3
+                        timeout=5
                     )
                     self.provider.add_span_processor(BatchSpanProcessor(
                         cloud_exporter,
-                        max_queue_size=256,
-                        schedule_delay_millis=5000,
-                        export_timeout_millis=1500
+                        max_queue_size=2048,
+                        max_export_batch_size=512,
+                        schedule_delay_millis=1000,
+                        export_timeout_millis=5000
                     ))
                 except Exception as ce:
                     logger.debug(f"Cloud Phoenix exporter init skipped: {ce}")
 
-            # 2. Local Port Exporter (for localhost:6006 local viewer)
-            if self.local_port:
+            # 2. Local Port Exporter (for localhost:6006 local viewer, optional)
+            if self.enable_local and self.local_port:
                 local_endpoint = f"http://127.0.0.1:{self.local_port}/v1/traces"
                 try:
                     local_exporter = OTLPSpanExporter(
@@ -212,6 +219,8 @@ class PhoenixTracer:
 
             self.trace_counter += 1
             self.last_trace_time = time.time()
+            if len(self.active_spans) == 0:
+                self.flush(1500)
         except Exception as e:
             logger.debug(f"Failed to end span {step_id}: {e}")
 
