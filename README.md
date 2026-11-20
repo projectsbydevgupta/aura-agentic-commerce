@@ -132,6 +132,7 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 | 🔌 **MCP Tool Declarations** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/mcp.json](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | Model Context Protocol declarations for external LLM tool consumers |
 | 📜 **A2A Protocol Discovery** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | AP2 Agent Discovery Manifest for autonomous AI shoppers |
 | 🔭 **Arize Phoenix Tracing** | `GET` | [https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status](https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status) | Live OpenTelemetry tracer status, emitted traces, and space (`aura-commerce`) configuration |
+| 📑 **Presentation Slide Deck** | `PDF` | [`docs/AURA_Final_Group9_Final.pdf`](docs/AURA_Final_Group9_Final.pdf) | Official Group 9 Final Architecture & Evaluation Presentation Deck |
 | 📖 **Interactive OpenAPI Docs** | `GET` | [https://aura-agentic-commerce.onrender.com/docs](https://aura-agentic-commerce.onrender.com/docs) | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
 
 ### Evaluator Verification via cURL
@@ -187,6 +188,7 @@ AURA was evaluated across **120 measured benchmark runs** spanning 6 diverse use
 | **Guardrail Rejection Accuracy** | 99.2% | 98.8% | 99.1% |
 
 Visualizations available in [`docs/`](docs/):
+- `docs/AURA_Final_Group9_Final.pdf`: Official Group 9 Final Architecture & Evaluation Presentation Slide Deck.
 - `docs/mas_heatmap.svg`: 2D agent performance and token usage matrix.
 - `docs/evaluation_boxplot_latency.svg`: Latency distribution across agentic architectures.
 - `docs/merge_agents_comparison.svg`: Empirical study validating why decoupled multi-agent architectures outperform monolithic LLMs.
@@ -225,7 +227,7 @@ cp .env.example .env
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Run automated test suite (24 tests verifying all 10 criteria)
+# 4. Run automated test suite (32 tests verifying all 10 criteria)
 pytest tests/ -v
 
 # 5. Launch local server (Port 8000)
