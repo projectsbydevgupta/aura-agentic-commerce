@@ -131,6 +131,7 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 | 💓 **Health Check Probe** | `GET` | [https://aura-agentic-commerce.onrender.com/health](https://aura-agentic-commerce.onrender.com/health) | Uptime monitoring and MongoDB Atlas database connection health |
 | 🔌 **MCP Tool Declarations** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/mcp.json](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | Model Context Protocol declarations for external LLM tool consumers |
 | 📜 **A2A Protocol Discovery** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | AP2 Agent Discovery Manifest for autonomous AI shoppers |
+| 🔭 **Arize Phoenix Tracing** | `GET` | [https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status](https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status) | Live OpenTelemetry tracer status, emitted traces, and space configuration |
 | 📖 **Interactive OpenAPI Docs** | `GET` | [https://aura-agentic-commerce.onrender.com/docs](https://aura-agentic-commerce.onrender.com/docs) | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
 
 ### Evaluator Verification via cURL
@@ -139,12 +140,29 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 # Health check & database probe
 curl -s "https://aura-agentic-commerce.onrender.com/health"
 
+# Arize Phoenix OpenTelemetry tracing status probe
+curl -s "https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status"
+
 # Model Context Protocol (MCP) tool schema
 curl -s "https://aura-agentic-commerce.onrender.com/.well-known/mcp.json"
 
 # Autonomous Agent-to-Agent (A2A) protocol manifest
 curl -s "https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json"
 ```
+
+---
+
+## 🔌 Service Port Allocation & Network Topology
+
+AURA orchestrates microservices, agent protocols, and telemetry collectors across the following dedicated ports:
+
+| Service / Subsystem | Local Dev Port | Live Production Port / URL | Protocol & Transport | Operational Responsibility |
+| :--- | :---: | :---: | :---: | :--- |
+| **FastAPI Core Application** | `8000` (`http://localhost:8000`) | Standard `443` HTTPS ([Live App](https://aura-agentic-commerce.onrender.com)) | HTTP/1.1 & SSE (Uvicorn ASGI) | Hosts Storefront UI, MAS Evaluation Dashboard (`/evaluation`), Swagger Docs (`/docs`), and REST APIs. |
+| **FastMCP Tool Microservice** | `8001` (`http://localhost:8001`) | Routed via Core Port `443` (`/protocol/v1/mcp/call`) | JSON-RPC 2.0 over HTTP | Serves standardized Model Context Protocol tools (`catalog_hybrid_search`, `financial_fx_calculator`). |
+| **Arize Phoenix Observability** | `6006` (`http://localhost:6006`) | Cloud Collector: `https://app.phoenix.arize.com` (Status: `/api/monitoring/phoenix-status`) | OpenTelemetry / OTLP (Protobuf over HTTP) | Captures distributed traces, span hierarchies, token consumption, and agent latency for deep observability. |
+| **WhatsApp Baileys Service** | `5001` (`http://localhost:5001`) | Internal Microservice Bridge | WebSockets & HTTP REST | Handles re-engagement campaign pushes, cart recovery, and coupon dispatching via WhatsApp protocol. |
+| **MongoDB Atlas Cluster** | `27017` (SRV connection) | Cloud Cluster (`mongodb+srv://`) | TLS-Encrypted MongoDB Protocol | Stores 44,424 product records and serves 512-dim Voyage AI dense vector search queries. |
 
 ---
 
