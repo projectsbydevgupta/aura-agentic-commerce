@@ -66,6 +66,7 @@ baileys_auth_info/
 
 # Logs & Diagnostics
 *.log
+data/monitoring_logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
