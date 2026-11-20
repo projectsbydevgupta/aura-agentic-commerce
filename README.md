@@ -27,7 +27,7 @@ AURA implements and benchmarks the following 10 multi-agent system engineering c
 | **C6** | **Agent-to-Agent (A2A) Protocol Interoperability** | Standardized `A2AMessageEnvelope` protocol enabling cross-framework autonomous negotiation between client-side **Google ADK Buyer** and merchant-side **CrewAI Concierge**. | `src/protocol/a2a_channel.py`<br>`src/protocol/router.py` | ✅ **Verified** (`tests/test_crewai_adk_interop.py`) |
 | **C7** | **Dual Framework Compliance (CrewAI + Google ADK)** | **Mandatory requirement met**: Powered by **CrewAI** (hierarchical merchant concierge with Catalog Scout, Style Coordinator, and QA Inspector) and **Google ADK** (autonomous buyer with budget ceilings and auto-checkout). | `src/crews/fashion_crew.py`<br>`src/adk_agents/buyer_agent.py` | ✅ **Verified** (Both frameworks active and interoperable) |
 | **C8** | **MAS Security: Guardrails, Personas & Spend Ceilings** | Multi-tier security interceptor detecting prompt injection, toxic/abusive persona inputs, adversarial jailbreaks, and hard budget overrun ceilings with audit logging. | `src/security/guardrails.py` | ✅ **Verified** (`tests/test_guardrails_and_monitoring.py`) |
-| **C9** | **Enterprise Observability & Tracing** | Distributed OpenTelemetry spans exported to Arize Phoenix, capturing agent execution traces, token consumption, latency breakdowns, and prompt metadata. | `src/monitoring/phoenix_tracer.py` | ✅ **Verified** (`tests/test_phoenix_tracing.py`) |
+| **C9** | **Enterprise Observability & Tracing** | Distributed OpenTelemetry spans exported to Arize Phoenix Cloud (Space: `aura-commerce`) and local port `6006`, capturing agent execution traces, token consumption, latency breakdowns, and prompt metadata. | `src/monitoring/phoenix_tracer.py` | ✅ **Verified** (`tests/test_phoenix_tracing.py`) |
 | **C10** | **Empirical Evaluation: 120 Runs & Statistical Boxplots** | Evaluated across 120 empirical runs covering 6 user personas and 3 architectural topologies. Includes statistical latency boxplots, cost estimates, and LLM-as-a-Judge relevance scoring. | `data/evaluation_120_runs.csv`<br>`docs/evaluation_boxplot_latency.svg`<br>`scripts/run_benchmarks.py` | ✅ **Verified** (120 runs documented & visualized) |
 
 ---
@@ -131,7 +131,7 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 | 💓 **Health Check Probe** | `GET` | [https://aura-agentic-commerce.onrender.com/health](https://aura-agentic-commerce.onrender.com/health) | Uptime monitoring and MongoDB Atlas database connection health |
 | 🔌 **MCP Tool Declarations** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/mcp.json](https://aura-agentic-commerce.onrender.com/.well-known/mcp.json) | Model Context Protocol declarations for external LLM tool consumers |
 | 📜 **A2A Protocol Discovery** | `GET` | [https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json](https://aura-agentic-commerce.onrender.com/.well-known/agent-protocol.json) | AP2 Agent Discovery Manifest for autonomous AI shoppers |
-| 🔭 **Arize Phoenix Tracing** | `GET` | [https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status](https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status) | Live OpenTelemetry tracer status, emitted traces, and space configuration |
+| 🔭 **Arize Phoenix Tracing** | `GET` | [https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status](https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status) | Live OpenTelemetry tracer status, emitted traces, and space (`aura-commerce`) configuration |
 | 📖 **Interactive OpenAPI Docs** | `GET` | [https://aura-agentic-commerce.onrender.com/docs](https://aura-agentic-commerce.onrender.com/docs) | Interactive Swagger UI for testing all REST, MCP, and A2A routes |
 
 ### Evaluator Verification via cURL
@@ -140,7 +140,7 @@ When a user submits an inquiry or clicks a suggestion, the frontend reveals the 
 # Health check & database probe
 curl -s "https://aura-agentic-commerce.onrender.com/health"
 
-# Arize Phoenix OpenTelemetry tracing status probe
+# Arize Phoenix OpenTelemetry tracing status probe (confirms aura-commerce cloud space)
 curl -s "https://aura-agentic-commerce.onrender.com/api/monitoring/phoenix-status"
 
 # Model Context Protocol (MCP) tool schema
@@ -219,8 +219,12 @@ pip install -r requirements.txt
 # 4. Run automated test suite (24 tests verifying all 10 criteria)
 pytest tests/ -v
 
-# 5. Launch local server
+# 5. Launch local server (Port 8000)
 uvicorn server:app --host 127.0.0.1 --port 8000 --reload
+
+# 6. (Optional) Launch local Arize Phoenix trace viewer UI (Port 6006)
+# Open http://127.0.0.1:6006 to inspect trace hierarchies and token spans locally
+python -m phoenix.server.main serve
 ```
 
 ---
