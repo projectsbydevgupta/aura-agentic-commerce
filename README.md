@@ -164,6 +164,15 @@ AURA orchestrates microservices, agent protocols, and telemetry collectors acros
 | **WhatsApp Baileys Service** | `5001` (`http://localhost:5001`) | Internal Microservice Bridge | WebSockets & HTTP REST | Handles re-engagement campaign pushes, cart recovery, and coupon dispatching via WhatsApp protocol. |
 | **MongoDB Atlas Cluster** | `27017` (SRV connection) | Cloud Cluster (`mongodb+srv://`) | TLS-Encrypted MongoDB Protocol | Stores 44,424 product records and serves 512-dim Voyage AI dense vector search queries. |
 
+### Arize Phoenix Telemetry Configuration (Production & Local)
+
+To route distributed multi-agent traces into the `aura-commerce` space:
+```bash
+PHOENIX_COLLECTOR_ENDPOINT=https://app.phoenix.arize.com/s/aura-commerce/v1/traces
+PHOENIX_PROJECT_NAME=aura-commerce
+PHOENIX_LOCAL_PORT=6006
+```
+
 ---
 
 ## 🔬 Benchmark Results & Statistical Validation (120 Runs)
