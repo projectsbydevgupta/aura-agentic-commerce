@@ -16,8 +16,9 @@ class TestPhoenixTracing(unittest.TestCase):
         status = self.tracer.get_status()
         self.assertTrue(status["enabled"])
         self.assertTrue(status["opentelemetry_installed"])
-        self.assertEqual(status["project_name"], "bmu-chatbot")
+        self.assertEqual(status["project_name"], "aura-commerce")
         self.assertEqual(status["local_port"], 6006)
+        self.assertEqual(status["cloud_endpoint"], "https://app.phoenix.arize.com/s/aura-commerce/v1/traces")
 
     def test_02_span_lifecycle(self):
         step_id = "test_step_px_001"

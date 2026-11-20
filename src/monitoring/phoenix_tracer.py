@@ -52,13 +52,13 @@ class PhoenixTracer:
         self.enabled = os.getenv("OBSERVABILITY_TRACING", "true").lower() in ("true", "1", "yes")
         self.endpoint = os.getenv(
             "PHOENIX_COLLECTOR_ENDPOINT",
-            "https://app.phoenix.arize.com/s/bmu-chatbot/v1/traces"
+            "https://app.phoenix.arize.com/s/aura-commerce/v1/traces"
         )
         self.api_key = os.getenv(
             "PHOENIX_API_KEY",
             "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJBcGlLZXk6MSJ9.As3Yw3IgHqcJMtFM33_EhtPHZhakX-bY6QENPovwMrQ"
         )
-        self.project_name = os.getenv("PHOENIX_PROJECT_NAME", "aura-ecommerce")
+        self.project_name = os.getenv("PHOENIX_PROJECT_NAME", "aura-commerce")
         self.local_port = int(os.getenv("PHOENIX_LOCAL_PORT", "6006"))
 
         self.tracer = None

@@ -67,7 +67,7 @@ WHATSAPP_DRY_RUN = os.getenv("WHATSAPP_DRY_RUN", "false").lower() in ("true", "1
 WHATSAPP_SESSION_DIR = os.getenv("WHATSAPP_SESSION_DIR", "data/baileys_auth")
 
 # Arize Phoenix Observability Configuration (Criterion 9)
-PHOENIX_COLLECTOR_ENDPOINT = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "https://app.phoenix.arize.com/s/bmu-chatbot/v1/traces")
+PHOENIX_COLLECTOR_ENDPOINT = os.getenv("PHOENIX_COLLECTOR_ENDPOINT", "https://app.phoenix.arize.com/s/aura-commerce/v1/traces")
 PHOENIX_API_KEY = os.getenv("PHOENIX_API_KEY", "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJBcGlLZXk6MSJ9.As3Yw3IgHqcJMtFM33_EhtPHZhakX-bY6QENPovwMrQ")
-PHOENIX_PROJECT_NAME = os.getenv("PHOENIX_PROJECT_NAME", "aura-ecommerce")
+PHOENIX_PROJECT_NAME = os.getenv("PHOENIX_PROJECT_NAME", "aura-commerce")
 PHOENIX_LOCAL_PORT = int(os.getenv("PHOENIX_LOCAL_PORT", "6006"))

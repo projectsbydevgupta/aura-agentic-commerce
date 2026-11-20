@@ -160,7 +160,7 @@ AURA orchestrates microservices, agent protocols, and telemetry collectors acros
 | :--- | :---: | :---: | :---: | :--- |
 | **FastAPI Core Application** | `8000` (`http://localhost:8000`) | Standard `443` HTTPS ([Live App](https://aura-agentic-commerce.onrender.com)) | HTTP/1.1 & SSE (Uvicorn ASGI) | Hosts Storefront UI, MAS Evaluation Dashboard (`/evaluation`), Swagger Docs (`/docs`), and REST APIs. |
 | **FastMCP Tool Microservice** | `8001` (`http://localhost:8001`) | Routed via Core Port `443` (`/protocol/v1/mcp/call`) | JSON-RPC 2.0 over HTTP | Serves standardized Model Context Protocol tools (`catalog_hybrid_search`, `financial_fx_calculator`). |
-| **Arize Phoenix Observability** | `6006` (`http://localhost:6006`) | Cloud Collector: `https://app.phoenix.arize.com` (Status: `/api/monitoring/phoenix-status`) | OpenTelemetry / OTLP (Protobuf over HTTP) | Captures distributed traces, span hierarchies, token consumption, and agent latency for deep observability. |
+| **Arize Phoenix Observability** | `6006` (`http://localhost:6006`) | Cloud Collector: `https://app.phoenix.arize.com/s/aura-commerce/v1/traces` (Status: `/api/monitoring/phoenix-status`) | OpenTelemetry / OTLP (Protobuf over HTTP) | Captures distributed traces, span hierarchies, token consumption, and agent latency for deep observability. |
 | **WhatsApp Baileys Service** | `5001` (`http://localhost:5001`) | Internal Microservice Bridge | WebSockets & HTTP REST | Handles re-engagement campaign pushes, cart recovery, and coupon dispatching via WhatsApp protocol. |
 | **MongoDB Atlas Cluster** | `27017` (SRV connection) | Cloud Cluster (`mongodb+srv://`) | TLS-Encrypted MongoDB Protocol | Stores 44,424 product records and serves 512-dim Voyage AI dense vector search queries. |
 
