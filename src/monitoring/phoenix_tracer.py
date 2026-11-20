@@ -56,7 +56,7 @@ class PhoenixTracer:
         )
         self.api_key = os.getenv(
             "PHOENIX_API_KEY",
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJBcGlLZXk6MSJ9.As3Yw3IgHqcJMtFM33_EhtPHZhakX-bY6QENPovwMrQ"
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJBcGlLZXk6MiIsInBoeF9ybmQiOiJnNExoQkJpTEM4bWprU3I2eVlweUoxLUh4V2x1eXpULWVSYU9tS0VGMTMwIn0.wwincG8FBBbCqhuTucU7pwWTU8-D56sW8y4AAN2H5UU"
         )
         self.project_name = os.getenv("PHOENIX_PROJECT_NAME", "aura-commerce")
         self.local_port = int(os.getenv("PHOENIX_LOCAL_PORT", "6006"))
