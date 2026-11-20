@@ -166,6 +166,16 @@ Visualizations available in [`docs/`](docs/):
 
 ---
 
+## 🏷️ Product Catalog & Benchmark Dataset Provenance
+
+The production inventory powering AURA's retrieval, validation, and styling engines is built upon the **Myntra Fashion Product Dataset** (curated and distributed via [Kaggle](https://www.kaggle.com/datasets/paramaggarwal/fashion-product-images-small) by Param Aggarwal):
+- **Catalog Scale:** 44,424 authentic e-commerce inventory items across Apparel (21,397), Accessories (11,274), Footwear (9,219), and Personal Care (2,403).
+- **Demographics & Usages:** Balanced representation across Men (22,147), Women (18,631), and Unisex (2,161), supporting Casual (34,723), Athletic/Sports (4,025), Ethnic/Traditional (3,208), and Formal (2,345) styles.
+- **Production Asset Pipeline:** Preserves live high-resolution product imagery hosted directly on Myntra's CDN (`assets.myntassets.com`), along with authentic brand attributions (*Turtle, Peter England, Titan, Puma, Fabindia*), seasonal metadata, and retail pricing.
+- **Hybrid Vector Indexing:** Precomputed 512-dimensional dense embeddings via **Voyage AI (`voyage-3-lite`)**, stored in **MongoDB Atlas Vector Search** with scalar compound filters on price, subcategory, and usage for sub-45ms hybrid retrieval.
+
+---
+
 ## 🔄 Graceful Degradation & High-Availability Architecture
 
 A senior engineering priority in production AI systems is resilience against third-party service degradation:
