@@ -30,3 +30,9 @@ services:
         sync: false
       - key: WHATSAPP_API_KEY
         sync: false
+      - key: PHOENIX_COLLECTOR_ENDPOINT
+        value: https://app.phoenix.arize.com/s/aura-commerce/v1/traces
+      - key: PHOENIX_PROJECT_NAME
+        value: aura-commerce
+      - key: PHOENIX_API_KEY
+        sync: false

@@ -4,5 +4,5 @@ echo =====================================================================
 echo   AURA - AI Terminal Shopping Assistant
 echo =====================================================================
 echo.
-python agent_cli.py
+python backend/agent_cli.py
 pause
