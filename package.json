@@ -2,10 +2,10 @@
   "name": "aura-whatsapp-service",
   "version": "1.0.0",
   "description": "Lightweight WhatsApp Worker & Engine for AURA Commerce using Baileys",
-  "main": "src/whatsapp/baileys_service.js",
+  "main": "backend/src/whatsapp/baileys_service.js",
   "scripts": {
-    "start": "node src/whatsapp/baileys_service.js",
-    "test": "node src/whatsapp/test_service.js"
+    "start": "node backend/src/whatsapp/baileys_service.js",
+    "test": "node backend/src/whatsapp/test_service.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.19",

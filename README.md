@@ -81,28 +81,36 @@ Evaluated across **120 measured runs** spanning **4 customer personas** (*Polite
 ## Repository Structure
 
 ```text
-├── server.py                      # FastAPI ASGI server, API routes & static mounts
-├── brain.md                       # Deep technical architecture & decision log
-├── src/
-│   ├── agents/                    # LangGraph StateGraph, Query, Context, Validation, Upsell, Campaign
-│   ├── crews/                     # CrewAI Hierarchical Fashion Concierge
-│   ├── adk_agents/                # Google ADK Autonomous Buyer Agent
-│   ├── blackboard/                # Partitioned Blackboard & Pub-Sub Event Bus
-│   ├── mcp/                       # FastMCP Server & Client (Catalog Search + FX Calculator)
-│   ├── protocol/                  # Cross-framework A2A JSON-RPC bridge & router
-│   ├── search/                    # Voyage AI embeddings & MongoDB Atlas hybrid search
-│   ├── security/                  # Pre-LLM prompt-injection, toxicity & spend-ceiling guardrails
-│   ├── monitoring/                # Arize Phoenix OpenTelemetry tracer & execution callbacks
-│   └── whatsapp/                  # Baileys daemon client & campaign queue worker
+├── frontend/                      # Storefront, Admin, Evaluation Dashboard & WhatsApp UI
+│   ├── index.html, app.js, styles.css
+│   ├── admin.html, admin.js, admin.css
+│   ├── evaluation_dashboard.html
+│   └── whatsapp.html
+├── backend/                       # FastAPI server, CLIs & Multi-Agent System modules
+│   ├── server.py                  # FastAPI ASGI application & REST/MCP/A2A routes
+│   ├── agent_cli.py               # Interactive agent CLI
+│   ├── search_cli.py              # Hybrid vector search CLI
+│   └── src/
+│       ├── agents/                # LangGraph StateGraph, Query, Context, Validation, Upsell, Campaign
+│       ├── crews/                 # CrewAI Hierarchical Fashion Concierge
+│       ├── adk_agents/            # Google ADK Autonomous Buyer Agent
+│       ├── blackboard/            # Partitioned Blackboard & Pub-Sub Event Bus
+│       ├── mcp/                   # FastMCP Server & Client (Catalog Search + FX Calculator)
+│       ├── protocol/              # Cross-framework A2A JSON-RPC bridge & router
+│       ├── search/                # Voyage AI embeddings & MongoDB Atlas hybrid search
+│       ├── security/              # Pre-LLM prompt-injection, toxicity & spend-ceiling guardrails
+│       ├── monitoring/            # Arize Phoenix OpenTelemetry tracer & execution callbacks
+│       └── whatsapp/              # Baileys daemon client & campaign queue worker
 ├── docs/
 │   ├── presentation/              # Final Group 9 presentation PDF
 │   ├── ui/                        # Storefront & Evaluation Dashboard UI screenshots (PNG)
 │   ├── architecture/              # System, MAS, MCP, Blackboard, A2A & deployment diagrams (PNG)
 │   └── evaluation/                # Heatmaps, boxplots, waterfall, persona & ablation charts (PNG)
 ├── scripts/                       # 120-run benchmark runner, catalog ingestion & chart generator
-├── static/                        # Storefront, Admin & Evaluation Dashboard frontend assets
 ├── data/                          # Catalog dataset, vector index schema & benchmark CSV/JSONs
-└── tests/                         # 32 automated pytest unit & integration tests
+├── tests/                         # 32 automated pytest unit & integration tests
+├── server.py                      # Root ASGI entrypoint shim for Render & Uvicorn
+└── brain.md                       # Deep technical architecture & decision log
 ```
 
 ---

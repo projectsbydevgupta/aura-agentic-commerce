@@ -125,7 +125,7 @@ class ProductHybridSearchEngine:
         if self._local_catalog is not None:
             return self._local_catalog
         candidates = [
-            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "products_catalog.json"),
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "data", "products_catalog.json"),
             os.path.join(os.getcwd(), "data", "products_catalog.json"),
             "data/products_catalog.json"
         ]
