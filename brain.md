@@ -675,8 +675,8 @@ if requested_max_price < catalog_min_price:
 | src/search/engine.py | 296 | Hybrid search + RRF + price intelligence |
 | src/whatsapp/queue.py | 265 | Atomic MongoDB message queue |
 | src/agents/campaign_agent.py | 198 | AI campaign copywriter |
-| static/app.js | ~2000 | Full frontend logic |
-| static/styles.css | ~1700 | Premium dark mode CSS |
+| frontend/app.js | ~2000 | Full frontend logic |
+| frontend/styles.css | ~1700 | Premium dark mode CSS |
 | src/auth.py | ~350 | User management + admin |
 | src/protocol/router.py | 445 | A2A protocol endpoints |
 
@@ -722,7 +722,7 @@ Test suite: ~750 lines
 - **Empirical Comparison**: 120 benchmark runs prove that the hybrid topology maximizes precision (96.2%) while maintaining sub-second user responsiveness.
 
 ### 18.5 Criterion 5: Task Monitoring, Callbacks & 2D MAS Heatmap
-- **Implementation**: `src/monitoring/callbacks.py` & `static/evaluation_dashboard.html`.
+- **Implementation**: `src/monitoring/callbacks.py` & `frontend/evaluation_dashboard.html`.
 - **Lifecycle Hooks**:
   - `on_agent_start(step_id, thread_id, agent_name, input_data)`
   - `on_agent_end(step_id, output_data, token_counts, latency_ms)`
@@ -785,4 +785,5 @@ Test suite: ~750 lines
 
 ---
 
-*This brain.md is the authoritative technical reference for the AURA Multi-Agent System (MAS).*
+*This brain.md is the authoritative technical reference for the AURA Multi-Agent System (MAS).*
+

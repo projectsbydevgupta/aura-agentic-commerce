@@ -2,7 +2,7 @@
 AURA Evaluation Visualization Engine
 Generates publication-quality charts for Evaluation 2 from measured data:
 1. 2D MAS Agent Heatmap (docs/mas_heatmap.svg) - Built from data/monitoring_logs JSONL logs
-2. Statistical Boxplot: Latency across Architectures (docs/evaluation_boxplot_latency.svg) - Built from data/evaluation_runs.csv
+2. Statistical Boxplot: Latency across Architectures (docs/evaluation_boxplot_latency.svg) - Built from data/evaluation_120_runs.csv
 3. Statistical Boxplot: Cost across Personas (docs/evaluation_boxplot_cost.svg)
 4. Merge-Two-Agents Comparative Bar Chart (docs/merge_agents_comparison.svg) - Built from data/merge_test_results.json
 """
@@ -152,10 +152,10 @@ def generate_mas_heatmap_svg(output_path: str = "docs/mas_heatmap.svg"):
     print(f"✓ Generated Measured MAS Heatmap at: {output_path}")
 
 
-def generate_boxplot_svg(csv_path: str = "data/evaluation_runs.csv", output_path: str = "docs/evaluation_boxplot_latency.svg"):
+def generate_boxplot_svg(csv_path: str = "data/evaluation_120_runs.csv", output_path: str = "docs/evaluation_boxplot_latency.svg"):
     """
     Generates Statistical Boxplot comparing Latency across Architectures.
-    Reads strictly from data/evaluation_runs.csv for PASSED runs only.
+    Reads strictly from data/evaluation_120_runs.csv for PASSED runs only.
     """
     data_by_arch = {}
     if os.path.exists(csv_path):
@@ -178,7 +178,7 @@ def generate_boxplot_svg(csv_path: str = "data/evaluation_runs.csv", output_path
     width, height = 750, 420
     svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" style="background:#ffffff; font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',sans-serif;">']
     svg.append('<text x="375" y="32" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">Measured Latency Distribution across Architectures</text>')
-    svg.append('<text x="375" y="52" text-anchor="middle" font-size="11" fill="#64748b">Criterion 10: Measured Latencies (ms) for Passed Runs (from data/evaluation_runs.csv)</text>')
+    svg.append('<text x="375" y="52" text-anchor="middle" font-size="11" fill="#64748b">Criterion 10: Measured Latencies (ms) for Passed Runs (from data/evaluation_120_runs.csv)</text>')
 
     # Axis guidelines
     plot_x, plot_y, plot_w, plot_h = 100, 80, 580, 270
@@ -567,7 +567,7 @@ def generate_messaging_a2a_svg(output_path: str = "docs/messaging_patterns_a2a.s
 def main():
     os.makedirs("docs", exist_ok=True)
     generate_mas_heatmap_svg("docs/mas_heatmap.svg")
-    generate_boxplot_svg("data/evaluation_runs.csv", "docs/evaluation_boxplot_latency.svg")
+    generate_boxplot_svg("data/evaluation_120_runs.csv", "docs/evaluation_boxplot_latency.svg")
     generate_merge_comparison_svg("data/merge_test_results.json", "docs/merge_agents_comparison.svg")
     generate_architecture_diagram_svg("docs/mas_architecture_diagram.svg")
     generate_messaging_a2a_svg("docs/messaging_patterns_a2a.svg")

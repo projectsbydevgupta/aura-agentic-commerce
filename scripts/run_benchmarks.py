@@ -1,3 +1,5 @@
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
 """
 AURA Benchmark Execution Suite & Merge-Two-Agents Empirical Experiment
 Measures real performance across Multi-Agent Architectures:

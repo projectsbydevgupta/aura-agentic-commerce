@@ -1,3 +1,5 @@
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
 """
 AURA Autonomous AI Buyer Simulation Agent (A2A Commerce)
 Demonstrates end-to-end Machine-to-Machine commerce:
